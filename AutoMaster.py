@@ -52,12 +52,9 @@ def normalize_raw_name(raw_name):
     
     if pd.isna(raw_name):
         return None
-
     raw_name = str(raw_name)
-
     if "-" not in raw_name:
         return raw_name.strip()
-
     try:
         name_part = raw_name.split("-")[0].strip()
         first, last = name_part.split(" ", 1)
@@ -96,7 +93,6 @@ def format_assignment_group(group):
     else:
         return group.title()
 
-
 def calculate_sample_percentage(tenure):
     if tenure < 6:
         return 0.15
@@ -112,18 +108,14 @@ def format_location(raw_location):
     
     if pd.isna(raw_location):
         return ""
-
     raw_location = str(raw_location).upper()
-
     for country, identifiers in COUNTRY_LOCATION_MAP.items():
         for identifier in identifiers:
             if identifier.upper() in raw_location:
                 return country
-
     return raw_location.title()
 
 def find_column(df, possible_names):
-    
     # Finds a column in df whose header matches one of the possible_names.
     # Matching is case-insensitive.
     
@@ -141,7 +133,6 @@ def find_qcl_start_row(ws):
     for row in range(1, ws.max_row + 1):
         cell_value = ws[f"B{row}"].value
         if cell_value and str(cell_value).strip().lower() == "control check no.":
-            # Start checking below header
             r = row + 1
             while ws[f"B{r}"].value:
                 r += 1
@@ -154,32 +145,27 @@ def detect_header_row(file_path, sheet_name=0, required_columns=None):
     # Returns row index to be used as header=.
     
     preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
-
     required_columns = [col.lower() for col in required_columns]
-
     for idx, row in preview.iterrows():
         row_values = [str(cell).strip().lower() for cell in row.values if pd.notna(cell)]
         if all(req in row_values for req in required_columns):
             return idx
-
     raise ValueError(f"Could not find header row containing: {required_columns}")
-
-
 
 # ---------------- MAIN PROCESS ---------------- #
 
 def process_files():
-    raw_file = raw_entry.get()
-    member_file = member_entry.get()
+    raw_file = qa_checks_entry.get()
+    qa_review_file = qa_review_entry.get()
     qcl_template = qcl_entry.get()
+    member_file = member_entry.get()
 
     if not raw_file or not member_file or not qcl_template:
-        messagebox.showerror("Error", "Please select all three Excel files.")
+        messagebox.showerror("Error", "Please select all required files.")
         return
 
     try:
         raw_df = pd.read_excel(raw_file)
-
         location_col = find_column(raw_df, ["Location"])
         assigned_col = find_column(raw_df, ["Assigned to", "Assigned To"])
         case_id_col = find_column(raw_df, ["Number"])
@@ -190,17 +176,11 @@ def process_files():
             member_file,
             required_columns=["Team", "Tenure"]
         )
-
-        members_df = pd.read_excel(
-            member_file,
-            header=member_header_row
-        )
-        
+        members_df = pd.read_excel(member_file, header=member_header_row)
         member_name_col = find_column(members_df, ["Team"])
         tenure_col = find_column(members_df, ["Tenure"])
 
         employee_cases = {}
-
         for _, row in raw_df.iterrows():
             assigned_to = str(row[assigned_col]).strip()
             normalized = normalize_raw_name(assigned_to)
@@ -208,27 +188,17 @@ def process_files():
 
         wb = load_workbook(qcl_template)
         ws = wb["QA Checks"]
-
         current_row = find_qcl_start_row(ws)
         control_no = 1
-
-        output_text.delete("1.0", tk.END)
 
         for _, member in members_df.iterrows():
             member_name = str(member[member_name_col]).strip()
             tenure = member[tenure_col]
-
             if member_name not in employee_cases or pd.isna(tenure):
                 continue
-
             cases = employee_cases[member_name]
             sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
             sampled_cases = random.sample(cases, min(sample_size, len(cases)))
-
-            output_text.insert(
-                tk.END,
-                f"{member_name} | Sampled {len(sampled_cases)} cases\n"
-            )
 
             for case in sampled_cases:
                 ws[f"B{current_row}"] = control_no
@@ -237,30 +207,44 @@ def process_files():
                 ws[f"E{current_row}"] = normalize_raw_name(case[assigned_col])
                 ws[f"F{current_row}"] = case[case_id_col]
                 ws[f"G{current_row}"] = case[service_col]
-
                 control_no += 1
                 current_row += 1
 
         output_path = qcl_template.replace(".xlsx", "_POPULATED.xlsx")
         wb.save(output_path)
-
         messagebox.showinfo("Success", f"QCL generated:\n{output_path}")
 
     except Exception as e:
         messagebox.showerror("Error", str(e))
 
-
 # ---------------- GUI SETUP ---------------- #
 
 root = tk.Tk()
-root.title("HR QA Case Sampling & QCL Generator")
-root.geometry("820x700")
+root.title("AutoMaster")
+root.geometry("600x700")
+root.configure(bg="#BFBFBF")
 
-# Circle Dropdown (No logic yet)
-tk.Label(root, text="Circle Selection:").pack(pady=5)
-circle_var = tk.StringVar()
+# Logo frame
+logo_frame = tk.Frame(root, bg="white", height=120)
+logo_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
+logo_frame.pack_propagate(False)
+
+logo_label = tk.Label(logo_frame, text="A\nM", font=("Arial", 36, "bold"), 
+                      bg="white", fg="#FF6B35")
+logo_label.pack(expand=True)
+
+# Circle Selection
+circle_label = tk.Label(root, text="1.", font=("Arial", 14, "bold"), 
+                        bg="#BFBFBF", fg="black")
+circle_label.pack(anchor=tk.W, padx=30, pady=(10, 5))
+
+circle_frame = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID, highlightbackground="#FF6B35", 
+                        highlightthickness=2)
+circle_frame.pack(fill=tk.X, padx=30, pady=5)
+
+circle_var = tk.StringVar(value="Circle 1 (HCM, OM)")
 circle_dropdown = tk.OptionMenu(
-    root,
+    circle_frame,
     circle_var,
     "Circle 1 (HCM, OM)",
     "Circle 2 (Expense, Reporting, Travel)",
@@ -270,36 +254,75 @@ circle_dropdown = tk.OptionMenu(
     "Circle 6 (Contact Center)",
     "Circle 7 (Recruitment Admin)"
 )
-circle_dropdown.pack()
-circle_var.set("Circle 1 (HCM, OM)")
+circle_dropdown.config(font=("Arial", 11), bg="white", fg="gray", 
+                       relief=tk.FLAT, highlightthickness=0, width=35)
+circle_dropdown.pack(fill=tk.X, padx=5, pady=5)
 
-def file_input(label):
-    tk.Label(root, text=label).pack(pady=4)
-    frame = tk.Frame(root)
-    frame.pack()
-    entry = tk.Entry(frame, width=65)
-    entry.pack(side=tk.LEFT, padx=5)
-    tk.Button(frame, text="Browse", command=lambda: browse(entry)).pack(side=tk.LEFT)
+# File upload section
+file_section_label = tk.Label(root, text="2.", font=("Arial", 14, "bold"), 
+                              bg="#BFBFBF", fg="black")
+file_section_label.pack(anchor=tk.W, padx=30, pady=(15, 5))
+
+file_container = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID)
+file_container.pack(fill=tk.X, padx=30, pady=5)
+
+def create_file_row(parent, icon_text, button_text, status_text):
+    row_frame = tk.Frame(parent, bg="white")
+    row_frame.pack(fill=tk.X, padx=10, pady=8)
+    
+    icon_frame = tk.Frame(row_frame, bg="#00C853", width=40, height=40)
+    icon_frame.pack(side=tk.LEFT, padx=(0, 10))
+    icon_frame.pack_propagate(False)
+    icon_label = tk.Label(icon_frame, text=icon_text, font=("Arial", 16, "bold"), 
+                         bg="#00C853", fg="white")
+    icon_label.pack(expand=True)
+    
+    button = tk.Button(row_frame, text=button_text, font=("Arial", 10, "bold"),
+                      bg="#FF6B35", fg="white", width=18, relief=tk.FLAT, cursor="hand2")
+    button.pack(side=tk.LEFT)
+    
+    status = tk.Label(row_frame, text=status_text, font=("Arial", 9),
+                     bg="gray", fg="white", anchor=tk.W, padx=10)
+    status.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(10, 0))
+    
+    entry = tk.Entry(row_frame)
+    
+    def browse_file():
+        path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx *.xls")])
+        if path:
+            entry.delete(0, tk.END)
+            entry.insert(0, path)
+            filename = path.split("/")[-1]
+            status.config(text=filename, bg="green")
+    
+    button.config(command=browse_file)
     return entry
 
-def browse(entry):
-    path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx *.xls")])
-    if path:
-        entry.delete(0, tk.END)
-        entry.insert(0, path)
+qa_checks_entry = create_file_row(file_container, "📊", "QA CHECKS RAW", "No raw data selected")
+qa_review_entry = create_file_row(file_container, "📊", "QA REVIEW RAW", "No raw data selected")
 
-raw_entry = file_input("Raw HR Case File:")
-member_entry = file_input("Member List File:")
-qcl_entry = file_input("QCL Template File:")
+# QCL Template
+qcl_label = tk.Label(root, text="3.", font=("Arial", 14, "bold"), 
+                     bg="#BFBFBF", fg="black")
+qcl_label.pack(anchor=tk.W, padx=30, pady=(15, 5))
 
-tk.Button(
-    root,
-    text="Process Files & Generate QCL",
-    command=process_files,
-    width=35
-).pack(pady=10)
+qcl_frame = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID)
+qcl_frame.pack(fill=tk.X, padx=30, pady=5)
+qcl_entry = create_file_row(qcl_frame, "📄", "QCL TEMPLATE", "No template selected")
 
-output_text = scrolledtext.ScrolledText(root, wrap=tk.WORD)
-output_text.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
+# Member List
+member_label = tk.Label(root, text="4.", font=("Arial", 14, "bold"), 
+                        bg="#BFBFBF", fg="black")
+member_label.pack(anchor=tk.W, padx=30, pady=(15, 5))
+
+member_frame = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID)
+member_frame.pack(fill=tk.X, padx=30, pady=5)
+member_entry = create_file_row(member_frame, "👤", "MEMBER LIST", "No member list selected")
+
+# AutoMate Button
+automate_btn = tk.Button(root, text="AutoMate", font=("Arial", 14, "bold"),
+                        bg="#FF6B35", fg="white", width=20, height=2,
+                        relief=tk.FLAT, cursor="hand2", command=process_files)
+automate_btn.pack(pady=30)
 
 root.mainloop()
