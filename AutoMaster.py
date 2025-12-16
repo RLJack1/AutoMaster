@@ -50,15 +50,24 @@ def normalize_raw_name(raw_name):
     
     # Converts 'First Last - ID' -> 'Last, First'
     
+    if pd.isna(raw_name):
+        return None
+
+    raw_name = str(raw_name)
+
+    if "-" not in raw_name:
+        return raw_name.strip()
+
     try:
         name_part = raw_name.split("-")[0].strip()
         first, last = name_part.split(" ", 1)
         return f"{last}, {first}"
     except:
-        return raw_name
-
-
+        return raw_name.strip()
+    
 def format_assignment_group(group):
+    if pd.isna(group):
+        return ""
     
     # Switch-case style normalization for Assignment Group
     
@@ -101,6 +110,9 @@ def format_location(raw_location):
     # Maps raw location values to standardized country names
     # based on COUNTRY_LOCATION_MAP
     
+    if pd.isna(raw_location):
+        return ""
+
     raw_location = str(raw_location).upper()
 
     for country, identifiers in COUNTRY_LOCATION_MAP.items():
@@ -108,7 +120,6 @@ def format_location(raw_location):
             if identifier.upper() in raw_location:
                 return country
 
-    # Fallback if no match is found
     return raw_location.title()
 
 def find_column(df, possible_names):
@@ -117,8 +128,9 @@ def find_column(df, possible_names):
     # Matching is case-insensitive.
     
     for col in df.columns:
+        col_name = str(col).strip().lower()
         for name in possible_names:
-            if col.strip().lower() == name.strip().lower():
+            if col_name == name.strip().lower():
                 return col
     raise ValueError(f"Missing required column: {possible_names}")
 
@@ -135,6 +147,23 @@ def find_qcl_start_row(ws):
                 r += 1
             return r
     raise ValueError("Could not find 'Control Check No.' in QCL template.")
+
+def detect_header_row(file_path, sheet_name=0, required_columns=None):
+    
+    # Detects the row number containing required column headers.
+    # Returns row index to be used as header=.
+    
+    preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
+
+    required_columns = [col.lower() for col in required_columns]
+
+    for idx, row in preview.iterrows():
+        row_values = [str(cell).strip().lower() for cell in row.values if pd.notna(cell)]
+        if all(req in row_values for req in required_columns):
+            return idx
+
+    raise ValueError(f"Could not find header row containing: {required_columns}")
+
 
 
 # ---------------- MAIN PROCESS ---------------- #
@@ -157,7 +186,16 @@ def process_files():
         service_col = find_column(raw_df, ["HR Service"])
         assignment_group_col = find_column(raw_df, ["Assignment group"])
 
-        members_df = pd.read_excel(member_file)
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+
+        members_df = pd.read_excel(
+            member_file,
+            header=member_header_row
+        )
+        
         member_name_col = find_column(members_df, ["Team"])
         tenure_col = find_column(members_df, ["Tenure"])
 
