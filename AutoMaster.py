@@ -4,6 +4,9 @@ from tkinter import filedialog, messagebox, scrolledtext
 import random
 import math
 from openpyxl import load_workbook
+from PIL import Image, ImageTk
+import os
+import sys
 
 COUNTRY_LOCATION_MAP = {
     "Belgium": [
@@ -46,6 +49,26 @@ COUNTRY_LOCATION_MAP = {
 
 # ---------------- HELPER FUNCTIONS ---------------- 
 
+def get_resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+def load_image(image_path, width=None, height=None):
+    """Load and resize image for tkinter"""
+    try:
+        img = Image.open(get_resource_path(image_path))
+        if width and height:
+            img = img.resize((width, height), Image.Resampling.LANCZOS)
+        return ImageTk.PhotoImage(img)
+    except Exception as e:
+        print(f"Error loading image {image_path}: {e}")
+        return None
+
 def normalize_raw_name(raw_name):
     
     # Converts 'First Last - ID' -> 'Last, First'
@@ -69,7 +92,6 @@ def format_assignment_group(group):
     # Switch-case style normalization for Assignment Group
     
     group = str(group).lower()
-
     if "compensation" in group or "benefits" in group:
         return "Performance & Rewards"
     elif "expenses" in group:
@@ -140,10 +162,6 @@ def find_qcl_start_row(ws):
     raise ValueError("Could not find 'Control Check No.' in QCL template.")
 
 def detect_header_row(file_path, sheet_name=0, required_columns=None):
-    
-    # Detects the row number containing required column headers.
-    # Returns row index to be used as header=.
-    
     preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
     required_columns = [col.lower() for col in required_columns]
     for idx, row in preview.iterrows():
@@ -224,14 +242,30 @@ root.title("AutoMaster")
 root.geometry("600x700")
 root.configure(bg="#BFBFBF")
 
+# Set window icon
+try:
+    icon_image = Image.open(get_resource_path("icon.png"))
+    icon_photo = ImageTk.PhotoImage(icon_image)
+    root.iconphoto(True, icon_photo)
+except Exception as e:
+    print(f"Could not load icon: {e}")
+
 # Logo frame
 logo_frame = tk.Frame(root, bg="white", height=120)
 logo_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
 logo_frame.pack_propagate(False)
 
-logo_label = tk.Label(logo_frame, text="A\nM", font=("Arial", 36, "bold"), 
-                      bg="white", fg="#FF6B35")
-logo_label.pack(expand=True)
+# Try to load logo image, fallback to text if not found
+logo_img = load_image("icon.png", width=200, height=150)
+if logo_img:
+    logo_label = tk.Label(logo_frame, image=logo_img, bg="white")
+    logo_label.image = logo_img  # Keep a reference
+    logo_label.pack(expand=True)
+else:
+    # Fallback to text logo
+    logo_label = tk.Label(logo_frame, text="A\nM", font=("Arial", 36, "bold"), 
+                          bg="white", fg="#FF6B35")
+    logo_label.pack(expand=True)
 
 # Circle Selection
 circle_label = tk.Label(root, text="1.", font=("Arial", 14, "bold"), 
