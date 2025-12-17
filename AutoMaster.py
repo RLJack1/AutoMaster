@@ -7,64 +7,55 @@ from openpyxl import load_workbook
 from PIL import Image, ImageTk
 import os
 import sys
+import warnings
+
+# Suppress openpyxl warnings for .xlsm files
+warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
 # Dictionary containing the country codes for all
 COUNTRY_LOCATION_MAP = {
-    "Belgium": {
-        "formatted_prefixes": ["PH1_BE", "PH2_BE"],
-        "arbitrary_codes": [
-        ]
-    },
-    "Philippines": {
-        "formatted_prefixes": ["PH1_PH", "PH2_PH"],
-        "arbitrary_codes": []
-    },
-    "Romania": {
-        "formatted_prefixes": ["PH1_RO"],
-        "arbitrary_codes": []
-    },
-    "Great Britain": {
-        "formatted_prefixes": ["PH3_GB"],
-        "arbitrary_codes": []
-    },
-    "Slovakia": {
-        "formatted_prefixes": ["PH3_SK"],
-        "arbitrary_codes": []
-    },
-    "United States": {
-        "formatted_prefixes": ["PH1_US"],
-        "arbitrary_codes": []
-    },
-    "Germany": {
-        "formatted_prefixes": ["PH2_DE", "PH3_DE"],
-        "arbitrary_codes": []
-    },
-    "China": {
-        "formatted_prefixes": ["PH2_CN"],
-        "arbitrary_codes": []
-    },
-    "Ukraine": {
-        "formatted_prefixes": ["PH2_UA"],
-        "arbitrary_codes": []
-    },
-    "Poland": {
-        "formatted_prefixes": ["PH1_PL"],
-        "arbitrary_codes": []
-    },
-    "Czechia": {
-        "formatted_prefixes": ["PH2_CZ"],
-        "arbitrary_codes": []
-    },
-    "Hungary": {
-        "formatted_prefixes": ["PH2_HU"],
-        "arbitrary_codes": []
-    }
+    "Belgium": [
+         "PH1_BE_ING_Brussels", "PH2_BE_Brussels"
+    ],
+    "Philippines": [
+        "PH1_PH_World_Plaza", "PH2_PH_One_Ayala_Tower", "PH2_PH_Manila"
+    ],
+    "Romania": [
+         "PH1_RO_Bucharest", "PH1_RO_Vladimir"
+    ],
+    "Great Britain": [
+         "PH3_GB_London"
+    ],
+    "Slovakia": [
+        "PH3_SK_Bratislava"
+    ],
+    "United States": [
+        "PH1_US_Washington"
+    ],
+    "Germany": [
+        "PH3_DE_Ulm", "PH2_DE_Stuttgart"
+    ],
+    "China": [
+        "PH2_CN_Shanghai"
+    ],
+    "Ukraine": [
+        "PH2_UA_Kyiv"
+    ],
+    "Poland": [
+        "PH1_PL_Katowice"
+    ],
+    "Czechia": [
+        "PH2_CZ_Skaltiz"
+    ],
+    "Hungary": [
+        "PH2_HU_Budapest"
+    ]
 }
 
-# ---------------- PYINSTALLER FUNCTIONS ---------------- 
+# ---------------- HELPER FUNCTIONS ---------------- 
 
 def get_resource_path(relative_path):
-    #Get absolute path to resource, works for dev and for PyInstaller
+    """Get absolute path to resource, works for dev and for PyInstaller"""
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
@@ -73,7 +64,7 @@ def get_resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def load_image(image_path, width=None, height=None):
-    #Load and resize image for tkinter
+    """Load and resize image for tkinter"""
     try:
         img = Image.open(get_resource_path(image_path))
         if width and height:
@@ -139,34 +130,13 @@ def calculate_sample_percentage(tenure):
     else:
         return 0.05
     
-def extract_formatted_prefix(location_code):
-    """
-    Extracts Department-Country prefix from formatted codes.
-    Example: PH1_BE_Brussels -> PH1_BE
-    """
-    parts = location_code.split("_")
-    if len(parts) >= 2:
-        return f"{parts[0]}_{parts[1]}"
-    return location_code
-
-
 def format_location(raw_location):
     if pd.isna(raw_location):
         return ""
-
-    raw_location = str(raw_location).upper().strip()
-
-    # Extract formatted prefix if applicable
-    prefix = extract_formatted_prefix(raw_location)
-
-    for country, rules in COUNTRY_LOCATION_MAP.items():
-        # Check formatted prefixes
-        if prefix in rules.get("formatted_prefixes", []):
-            return country
-
-        # Check arbitrary/manual codes
-        for code in rules.get("arbitrary_codes", []):
-            if code.upper() in raw_location:
+    raw_location = str(raw_location).upper()
+    for country, identifiers in COUNTRY_LOCATION_MAP.items():
+        for identifier in identifiers:
+            if identifier.upper() in raw_location:
                 return country
 
     # Fallback if no match
@@ -209,7 +179,7 @@ def detect_header_row(file_path, sheet_name=0, required_columns=None):
             return idx
     raise ValueError(f"Could not find header row containing: {required_columns}")
 
-# ---------------- MAIN PROCESS ---------------- #
+# ---------------- MAIN PROCESS ---------------- #z
 
 def process_files():
     raw_file = qa_checks_entry.get()
@@ -243,7 +213,8 @@ def process_files():
             normalized = normalize_raw_name(assigned_to)
             employee_cases.setdefault(normalized, []).append(row)
 
-        wb = load_workbook(qcl_template)
+        # Load workbook with keep_vba=True to preserve macros in .xlsm files
+        wb = load_workbook(qcl_template, keep_vba=True)
         ws = wb["QA Checks"]
         current_row = find_qcl_start_row(ws)
         control_no = 1
@@ -267,7 +238,9 @@ def process_files():
                 control_no += 1
                 current_row += 1
 
-        output_path = qcl_template.replace(".xlsx", "_POPULATED.xlsx")
+        # Preserve file extension (.xlsx or .xlsm)
+        file_ext = os.path.splitext(qcl_template)[1]
+        output_path = qcl_template.replace(file_ext, f"_POPULATED{file_ext}")
         wb.save(output_path)
         messagebox.showinfo("Success", f"QCL generated:\n{output_path}")
 
@@ -295,7 +268,7 @@ logo_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
 logo_frame.pack_propagate(False)
 
 # Try to load logo image, fallback to text if not found
-logo_img = load_image("icon.png", width=200, height=150)
+logo_img = load_image("logo.png", width=200, height=80)
 if logo_img:
     logo_label = tk.Label(logo_frame, image=logo_img, bg="white")
     logo_label.image = logo_img  # Keep a reference
@@ -361,7 +334,7 @@ def create_file_row(parent, icon_text, button_text, status_text):
     entry = tk.Entry(row_frame)
     
     def browse_file():
-        path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx *.xls")])
+        path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx *.xls *.xlsm")])
         if path:
             entry.delete(0, tk.END)
             entry.insert(0, path)
