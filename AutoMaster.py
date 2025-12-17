@@ -8,49 +8,63 @@ from PIL import Image, ImageTk
 import os
 import sys
 
+# Dictionary containing the country codes for all
 COUNTRY_LOCATION_MAP = {
-    "Belgium": [
-         "PH1_BE_ING_Brussels", "PH2_BE_Brussels"
-    ],
-    "Philippines": [
-        "PH1_PH_World_Plaza", "PH2_PH_One_Ayala_Tower", "PH2_PH_Manila"
-    ],
-    "Romania": [
-         "PH1_RO_Bucharest", "PH1_RO_Vladimir"
-    ],
-    "Great Britain": [
-         "PH3_GB_London"
-    ],
-    "Slovakia": [
-        "PH3_SK_Bratislava"
-    ],
-    "United States": [
-        "PH1_US_Washington"
-    ],
-    "Germany": [
-        "PH3_DE_Ulm", "PH2_DE_Stuttgart"
-    ],
-    "China": [
-        "PH2_CN_Shanghai"
-    ],
-    "Ukraine": [
-        "PH2_UA_Kyiv"
-    ],
-    "Poland": [
-        "PH1_PL_Katowice"
-    ],
-    "Czechia": [
-        "PH2_CZ_Skaltiz"
-    ],
-    "Hungary": [
-        "PH2_HU_Budapest"
-    ]
+    "Belgium": {
+        "formatted_prefixes": ["PH1_BE", "PH2_BE"],
+        "arbitrary_codes": [
+        ]
+    },
+    "Philippines": {
+        "formatted_prefixes": ["PH1_PH", "PH2_PH"],
+        "arbitrary_codes": []
+    },
+    "Romania": {
+        "formatted_prefixes": ["PH1_RO"],
+        "arbitrary_codes": []
+    },
+    "Great Britain": {
+        "formatted_prefixes": ["PH3_GB"],
+        "arbitrary_codes": []
+    },
+    "Slovakia": {
+        "formatted_prefixes": ["PH3_SK"],
+        "arbitrary_codes": []
+    },
+    "United States": {
+        "formatted_prefixes": ["PH1_US"],
+        "arbitrary_codes": []
+    },
+    "Germany": {
+        "formatted_prefixes": ["PH2_DE", "PH3_DE"],
+        "arbitrary_codes": []
+    },
+    "China": {
+        "formatted_prefixes": ["PH2_CN"],
+        "arbitrary_codes": []
+    },
+    "Ukraine": {
+        "formatted_prefixes": ["PH2_UA"],
+        "arbitrary_codes": []
+    },
+    "Poland": {
+        "formatted_prefixes": ["PH1_PL"],
+        "arbitrary_codes": []
+    },
+    "Czechia": {
+        "formatted_prefixes": ["PH2_CZ"],
+        "arbitrary_codes": []
+    },
+    "Hungary": {
+        "formatted_prefixes": ["PH2_HU"],
+        "arbitrary_codes": []
+    }
 }
 
-# ---------------- HELPER FUNCTIONS ---------------- 
+# ---------------- PYINSTALLER FUNCTIONS ---------------- 
 
 def get_resource_path(relative_path):
-    """Get absolute path to resource, works for dev and for PyInstaller"""
+    #Get absolute path to resource, works for dev and for PyInstaller
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
@@ -59,7 +73,7 @@ def get_resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def load_image(image_path, width=None, height=None):
-    """Load and resize image for tkinter"""
+    #Load and resize image for tkinter
     try:
         img = Image.open(get_resource_path(image_path))
         if width and height:
@@ -68,6 +82,8 @@ def load_image(image_path, width=None, height=None):
     except Exception as e:
         print(f"Error loading image {image_path}: {e}")
         return None
+
+# ---------------- HELPER FUNCTIONS ---------------- 
 
 def normalize_raw_name(raw_name):
     
@@ -123,18 +139,37 @@ def calculate_sample_percentage(tenure):
     else:
         return 0.05
     
+def extract_formatted_prefix(location_code):
+    """
+    Extracts Department-Country prefix from formatted codes.
+    Example: PH1_BE_Brussels -> PH1_BE
+    """
+    parts = location_code.split("_")
+    if len(parts) >= 2:
+        return f"{parts[0]}_{parts[1]}"
+    return location_code
+
+
 def format_location(raw_location):
-    
-    # Maps raw location values to standardized country names
-    # based on COUNTRY_LOCATION_MAP
-    
     if pd.isna(raw_location):
         return ""
-    raw_location = str(raw_location).upper()
-    for country, identifiers in COUNTRY_LOCATION_MAP.items():
-        for identifier in identifiers:
-            if identifier.upper() in raw_location:
+
+    raw_location = str(raw_location).upper().strip()
+
+    # Extract formatted prefix if applicable
+    prefix = extract_formatted_prefix(raw_location)
+
+    for country, rules in COUNTRY_LOCATION_MAP.items():
+        # Check formatted prefixes
+        if prefix in rules.get("formatted_prefixes", []):
+            return country
+
+        # Check arbitrary/manual codes
+        for code in rules.get("arbitrary_codes", []):
+            if code.upper() in raw_location:
                 return country
+
+    # Fallback if no match
     return raw_location.title()
 
 def find_column(df, possible_names):
@@ -162,6 +197,10 @@ def find_qcl_start_row(ws):
     raise ValueError("Could not find 'Control Check No.' in QCL template.")
 
 def detect_header_row(file_path, sheet_name=0, required_columns=None):
+    
+    # Detects the row number containing required column headers.
+    # Returns row index to be used as header=.
+    
     preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
     required_columns = [col.lower() for col in required_columns]
     for idx, row in preview.iterrows():
