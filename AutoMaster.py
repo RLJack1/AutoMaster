@@ -8,11 +8,12 @@ from PIL import Image, ImageTk
 import os
 import sys
 import warnings
+import shutil
 
 # Suppress openpyxl warnings for .xlsm files
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
-# Dictionary containing the country codes for all
+# Dictionary containing the country codes for all available countries serviced by CPS
 COUNTRY_LOCATION_MAP = {
     "Belgium": [
          "PH1_BE_ING_Brussels", "PH2_BE_Brussels"
@@ -179,7 +180,7 @@ def detect_header_row(file_path, sheet_name=0, required_columns=None):
             return idx
     raise ValueError(f"Could not find header row containing: {required_columns}")
 
-# ---------------- MAIN PROCESS ---------------- #z
+# ---------------- MAIN PROCESS ---------------- #
 
 def process_files():
     raw_file = qa_checks_entry.get()
@@ -213,8 +214,15 @@ def process_files():
             normalized = normalize_raw_name(assigned_to)
             employee_cases.setdefault(normalized, []).append(row)
 
-        # Load workbook with keep_vba=True to preserve macros in .xlsm files
-        wb = load_workbook(qcl_template, keep_vba=True)
+        # CRITICAL: Copy the template file first to preserve all Excel features
+        file_ext = os.path.splitext(qcl_template)[1]
+        output_path = qcl_template.replace(file_ext, f"_POPULATED{file_ext}")
+        
+        # Copy the entire file to preserve macros, buttons, hidden sheets, etc.
+        shutil.copy2(qcl_template, output_path)
+        
+        # Now open the COPY and modify it
+        wb = load_workbook(output_path, keep_vba=True)
         ws = wb["QA Checks"]
         current_row = find_qcl_start_row(ws)
         control_no = 1
@@ -238,11 +246,11 @@ def process_files():
                 control_no += 1
                 current_row += 1
 
-        # Preserve file extension (.xlsx or .xlsm)
-        file_ext = os.path.splitext(qcl_template)[1]
-        output_path = qcl_template.replace(file_ext, f"_POPULATED{file_ext}")
+        # Save changes to the copy
         wb.save(output_path)
-        messagebox.showinfo("Success", f"QCL generated:\n{output_path}")
+        wb.close()
+        
+        messagebox.showinfo("Success", f"QCL generated successfully!\n\n{output_path}\n\nAll macros, buttons, and hidden sheets preserved.")
 
     except Exception as e:
         messagebox.showerror("Error", str(e))
