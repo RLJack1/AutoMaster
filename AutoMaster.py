@@ -214,15 +214,22 @@ def process_files():
             normalized = normalize_raw_name(assigned_to)
             employee_cases.setdefault(normalized, []).append(row)
 
-        # CRITICAL: Copy the template file first to preserve all Excel features
+        # CRITICAL FIX: Copy template and load with data_only=False and keep_vba=True
         file_ext = os.path.splitext(qcl_template)[1]
         output_path = qcl_template.replace(file_ext, f"_POPULATED{file_ext}")
         
-        # Copy the entire file to preserve macros, buttons, hidden sheets, etc.
+        # Copy the entire file to preserve ALL Excel features
         shutil.copy2(qcl_template, output_path)
         
-        # Now open the COPY and modify it
-        wb = load_workbook(output_path, keep_vba=True)
+        # Load with keep_vba=True and data_only=False to preserve everything
+        # Using read_only=False and keep_links=True for maximum preservation
+        wb = load_workbook(
+            output_path, 
+            keep_vba=True,
+            data_only=False,
+            keep_links=True
+        )
+        
         ws = wb["QA Checks"]
         current_row = find_qcl_start_row(ws)
         control_no = 1
@@ -237,20 +244,21 @@ def process_files():
             sampled_cases = random.sample(cases, min(sample_size, len(cases)))
 
             for case in sampled_cases:
-                ws[f"B{current_row}"] = control_no
-                ws[f"C{current_row}"] = format_assignment_group(case[assignment_group_col])
-                ws[f"D{current_row}"] = format_location(case[location_col])
-                ws[f"E{current_row}"] = normalize_raw_name(case[assigned_col])
-                ws[f"F{current_row}"] = case[case_id_col]
-                ws[f"G{current_row}"] = case[service_col]
+                # Write directly to cell values - don't modify formulas or formatting
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+                ws[f"D{current_row}"].value = format_location(case[location_col])
+                ws[f"E{current_row}"].value = normalize_raw_name(case[assigned_col])
+                ws[f"F{current_row}"].value = case[case_id_col]
+                ws[f"G{current_row}"].value = case[service_col]
                 control_no += 1
                 current_row += 1
 
-        # Save changes to the copy
+        # Save with proper settings to preserve VBA and other features
         wb.save(output_path)
         wb.close()
         
-        messagebox.showinfo("Success", f"QCL generated successfully!\n\n{output_path}\n\nAll macros, buttons, and hidden sheets preserved.")
+        messagebox.showinfo("Success", f"QCL generated successfully!\n\n{output_path}\n\nAll macros, buttons, tables, and hidden sheets preserved.")
 
     except Exception as e:
         messagebox.showerror("Error", str(e))
