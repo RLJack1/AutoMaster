@@ -484,6 +484,7 @@ def process_files():
 root = tk.Tk()
 root.title("AutoMaster")
 root.geometry("600x700")
+root.minsize(500, 600)  # Set minimum size to prevent elements from overlapping
 root.configure(bg="#BFBFBF")
 
 # Set window icon
@@ -494,8 +495,31 @@ try:
 except Exception as e:
     print(f"Could not load icon: {e}")
 
+# Create main container with scrollbar for small screens
+main_canvas = tk.Canvas(root, bg="#BFBFBF", highlightthickness=0)
+scrollbar = tk.Scrollbar(root, orient="vertical", command=main_canvas.yview)
+scrollable_frame = tk.Frame(main_canvas, bg="#BFBFBF")
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: main_canvas.configure(scrollregion=main_canvas.bbox("all"))
+)
+
+main_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+main_canvas.configure(yscrollcommand=scrollbar.set)
+
+# Pack canvas and scrollbar
+main_canvas.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="y")
+
+# Enable mouse wheel scrolling
+def on_mousewheel(event):
+    main_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+main_canvas.bind_all("<MouseWheel>", on_mousewheel)
+
 # Logo frame
-logo_frame = tk.Frame(root, bg="white", height=120)
+logo_frame = tk.Frame(scrollable_frame, bg="white", height=120)
 logo_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
 logo_frame.pack_propagate(False)
 
@@ -512,11 +536,11 @@ else:
     logo_label.pack(expand=True)
 
 # Circle Selection
-circle_label = tk.Label(root, text="1.", font=("Arial", 14, "bold"), 
+circle_label = tk.Label(scrollable_frame, text="1.", font=("Arial", 14, "bold"), 
                         bg="#BFBFBF", fg="black")
 circle_label.pack(anchor=tk.W, padx=30, pady=(10, 5))
 
-circle_frame = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID, highlightbackground="#FF6B35", 
+circle_frame = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID, highlightbackground="#FF6B35", 
                         highlightthickness=2)
 circle_frame.pack(fill=tk.X, padx=30, pady=5)
 
@@ -537,11 +561,11 @@ circle_dropdown.config(font=("Arial", 11), bg="white", fg="gray",
 circle_dropdown.pack(fill=tk.X, padx=5, pady=5)
 
 # File upload section
-file_section_label = tk.Label(root, text="2.", font=("Arial", 14, "bold"), 
+file_section_label = tk.Label(scrollable_frame, text="2.", font=("Arial", 14, "bold"), 
                               bg="#BFBFBF", fg="black")
 file_section_label.pack(anchor=tk.W, padx=30, pady=(15, 5))
 
-file_container = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID)
+file_container = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID)
 file_container.pack(fill=tk.X, padx=30, pady=5)
 
 def create_file_row(parent, icon_text, button_text, status_text):
@@ -580,25 +604,25 @@ qa_checks_entry = create_file_row(file_container, "📊", "QA CHECKS RAW", "No r
 qa_review_entry = create_file_row(file_container, "📊", "QA REVIEW RAW", "No raw data selected")
 
 # QCL Template
-qcl_label = tk.Label(root, text="3.", font=("Arial", 14, "bold"), 
+qcl_label = tk.Label(scrollable_frame, text="3.", font=("Arial", 14, "bold"), 
                      bg="#BFBFBF", fg="black")
 qcl_label.pack(anchor=tk.W, padx=30, pady=(15, 5))
 
-qcl_frame = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID)
+qcl_frame = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID)
 qcl_frame.pack(fill=tk.X, padx=30, pady=5)
 qcl_entry = create_file_row(qcl_frame, "📄", "QCL TEMPLATE", "No template selected")
 
 # Member List
-member_label = tk.Label(root, text="4.", font=("Arial", 14, "bold"), 
+member_label = tk.Label(scrollable_frame, text="4.", font=("Arial", 14, "bold"), 
                         bg="#BFBFBF", fg="black")
 member_label.pack(anchor=tk.W, padx=30, pady=(15, 5))
 
-member_frame = tk.Frame(root, bg="white", bd=2, relief=tk.SOLID)
+member_frame = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID)
 member_frame.pack(fill=tk.X, padx=30, pady=5)
 member_entry = create_file_row(member_frame, "👤", "MEMBER LIST", "No member list selected")
 
 # AutoMate Button
-automate_btn = tk.Button(root, text="AutoMate", font=("Arial", 14, "bold"),
+automate_btn = tk.Button(scrollable_frame, text="AutoMate", font=("Arial", 14, "bold"),
                         bg="#FF6B35", fg="white", width=20, height=2,
                         relief=tk.FLAT, cursor="hand2", command=process_files)
 automate_btn.pack(pady=30)
