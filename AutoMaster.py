@@ -15,42 +15,175 @@ warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
 # Dictionary containing the country codes for all available countries serviced by CPS
 COUNTRY_LOCATION_MAP = {
-    "Belgium": [
-         "PH1_BE_ING_Brussels", "PH2_BE_Brussels"
-    ],
-    "Philippines": [
-        "PH1_PH_World_Plaza", "PH2_PH_One_Ayala_Tower", "PH2_PH_Manila"
-    ],
-    "Romania": [
-         "PH1_RO_Bucharest", "PH1_RO_Vladimir"
-    ],
-    "Great Britain": [
-         "PH3_GB_London"
-    ],
-    "Slovakia": [
-        "PH3_SK_Bratislava"
-    ],
-    "United States": [
-        "PH1_US_Washington"
-    ],
-    "Germany": [
-        "PH3_DE_Ulm", "PH2_DE_Stuttgart"
-    ],
-    "China": [
-        "PH2_CN_Shanghai"
-    ],
-    "Ukraine": [
-        "PH2_UA_Kyiv"
-    ],
-    "Poland": [
-        "PH1_PL_Katowice"
-    ],
-    "Czechia": [
-        "PH2_CZ_Skaltiz"
-    ],
-    "Hungary": [
-        "PH2_HU_Budapest"
-    ]
+    "Australia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SYD", "TUG", "WYN", "AU", "OVR", 
+        ]
+    },
+    "Belgium": {
+        "formatted_prefixes": ["PH3_BE_ING_BANK", "PH3_BE"],
+        "arbitrary_codes": [
+            "BE", "M1 03 14"
+        ]
+    },
+    "China": {
+        "formatted_prefixes": ["PH2_CN"],
+        "arbitrary_codes": [
+            
+        ]
+    },
+    "Czech Republic": {
+        "formatted_prefixes": ["PH2_CZ"],
+        "arbitrary_codes": [
+            
+        ]
+    },
+    "France": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "France", "RIC"
+        ]
+    },
+    "Germany": {
+        "formatted_prefixes": ["PH2_DE"],
+        "arbitrary_codes": [
+            "Germany"
+        ]
+    },
+    "Hong Kong": {
+        "formatted_prefixes": ["PH2_HK"],
+        "arbitrary_codes": [
+            "Hong Kong"
+        ]
+    },
+    "Hungary": {
+        "formatted_prefixes": ["PH2_HU"],
+        "arbitrary_codes": [
+            "HU"
+        ]
+    },
+    "Ireland": {
+        "formatted_prefixes": ["PH2_IE"],
+        "arbitrary_codes": [
+            
+        ]
+    },
+    "Italy": {
+        "formatted_prefixes": ["PH2_ITA"],
+        "arbitrary_codes": [
+            "Italy"
+        ]
+    },
+    "Japan": {
+        "formatted_prefixes": ["PH2_JP"],
+        "arbitrary_codes": [
+        ]
+    },
+    "Luxembourg": {
+        "formatted_prefixes": ["PH2_LU"],
+        "arbitrary_codes": [
+            "LU"
+        ]
+    },
+    "Netherlands": {
+        "formatted_prefixes": ["Guest NL"],
+        "arbitrary_codes": [
+            "ACT", "ALP", "AME", "BMG", 
+            "CDR", "DP", "HBP", "KBK",
+            "KCC", "KCM", "KFL", "KFR", 
+            "KGD", "KMH", "KNF", "KQB",
+            "KQB", "KSY", "KXS", "KZK", 
+            "KZR", "LZ", "RBG", "WBM",
+            "WP", "NL", "AT", "IE", 
+            "RO", "KNZ", "KBE", "Guest NL - Guest.NL",
+            "KLQ", "KQT", "DEA"
+        ]
+    },
+    "Philippines": {
+        "formatted_prefixes": ["PH1_PH", "Guest PH", "PH2_PH"],
+        "arbitrary_codes": [
+            "PH", "Guest PH - Guest.PH"
+        ]
+    },
+    "Poland": {
+        "formatted_prefixes": ["PH1_PL"],
+        "arbitrary_codes": [
+            "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+        ]
+    },
+    "Romania": {
+        "formatted_prefixes": ["PH1_RO"],
+        "arbitrary_codes": [
+            "PH", "Guest PH - Guest.PH"
+        ]
+    },
+    "Russian Federation": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "RUSMCW001"
+        ]
+    },
+    "Singapore": {
+        "formatted_prefixes": ["PH2_SG"],
+        "arbitrary_codes": [
+            "SG", "Guest Asia - Guest.Asia"
+        ]
+    },
+    "Slovakia": {
+        "formatted_prefixes": ["PH1_SK","PH2_SK"],
+        "arbitrary_codes": [
+            "SK"
+        ]
+    },
+    "South Korea": {
+        "formatted_prefixes": ["PH2_KR"],
+        "arbitrary_codes": [
+        ]
+    },
+    "Spain": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "Spain", "Madrid_Pobla", "Madrid_Poblados"
+        ]
+    },
+    "Sri Lanka": {
+        "formatted_prefixes": ["PH2_LK"],
+        "arbitrary_codes": [
+        ]
+    },
+    "Switzerland": {
+        "formatted_prefixes": ["PH2_CH"],
+        "arbitrary_codes": [
+        ]
+    },
+    "Taiwan": {
+        "formatted_prefixes": ["PH2_TW"],
+        "arbitrary_codes": [
+            "TW"
+        ]
+    },
+    "Turkey": {
+        "formatted_prefixes": ["PH2_TR"],
+        "arbitrary_codes": [
+            "TR", "4127"
+        ]
+    },
+    "Ukraine": {
+        "formatted_prefixes": ["PH2_UA"],
+        "arbitrary_codes": [
+        ]
+    },
+    "United Kingdom": {
+        "formatted_prefixes": ["PH2_GB"],
+        "arbitrary_codes": [
+        ]
+    },
+    "United States": {
+        "formatted_prefixes": ["PH2_US"],
+        "arbitrary_codes": [
+        ]
+    },
 }
 
 # ---------------- HELPER FUNCTIONS ---------------- 
@@ -131,13 +264,34 @@ def calculate_sample_percentage(tenure):
     else:
         return 0.05
     
+def extract_formatted_prefix(location_code):
+    """
+    Extracts Department-Country prefix from formatted codes.
+    Example: PH1_BE_Brussels -> PH1_BE
+    """
+    parts = location_code.split("_")
+    if len(parts) >= 2:
+        return f"{parts[0]}_{parts[1]}"
+    return location_code
+
+
 def format_location(raw_location):
     if pd.isna(raw_location):
         return ""
-    raw_location = str(raw_location).upper()
-    for country, identifiers in COUNTRY_LOCATION_MAP.items():
-        for identifier in identifiers:
-            if identifier.upper() in raw_location:
+
+    raw_location = str(raw_location).upper().strip()
+
+    # Extract formatted prefix if applicable
+    prefix = extract_formatted_prefix(raw_location)
+
+    for country, rules in COUNTRY_LOCATION_MAP.items():
+        # Check formatted prefixes
+        if prefix in rules.get("formatted_prefixes", []):
+            return country
+
+        # Check arbitrary/manual codes
+        for code in rules.get("arbitrary_codes", []):
+            if code.upper() in raw_location:
                 return country
 
     # Fallback if no match
