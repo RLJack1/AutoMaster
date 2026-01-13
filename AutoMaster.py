@@ -377,17 +377,32 @@ def process_files():
             required_columns=["Team", "Tenure"]
         )
         members_df = pd.read_excel(member_file, header=member_header_row)
-        member_name_col = find_column(members_df, ["Team"])
+        
+        # Try to find the formatted name column (column G with formula)
+        formatted_name_col = None
+        try:
+            # Look for a column that contains " - " pattern (name with corpkey)
+            for col in members_df.columns:
+                sample_values = members_df[col].dropna().astype(str).head(5)
+                if any(" - " in val for val in sample_values):
+                    formatted_name_col = col
+                    print(f"Found formatted name column: {col}")
+                    break
+        except:
+            pass
+        
+        # Fallback to Team column if formatted column not found
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
         tenure_col = find_column(members_df, ["Tenure"])
 
         # Build dictionary of cases per employee
-        # KEY FIX: Normalize names from raw data
+        # Use the raw "FirstName LastName - CorpKey" format from both files
         employee_cases = {}
         for _, row in raw_df.iterrows():
             assigned_to = str(row[assigned_col]).strip()
-            normalized = normalize_raw_name(assigned_to)
-            if normalized:  # Only add if normalization succeeded
-                employee_cases.setdefault(normalized, []).append(row)
+            if assigned_to and assigned_to.lower() != 'nan':
+                # Store with the raw format (no normalization needed!)
+                employee_cases.setdefault(assigned_to, []).append(row)
 
         # DEBUGGING: Print matching statistics
         print(f"\n=== MATCHING STATISTICS ===")
@@ -419,13 +434,14 @@ def process_files():
         # Process each member
         for _, member in members_df.iterrows():
             member_name_raw = str(member[member_name_col]).strip()
-            # KEY FIX: Normalize member names too
-            member_name = normalize_raw_name(member_name_raw)
             tenure = member[tenure_col]
             
             # Skip if no valid name or tenure
-            if not member_name or pd.isna(tenure):
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
                 continue
+            
+            # Use the raw formatted name directly (no normalization!)
+            member_name = member_name_raw
             
             # Check if this member has cases
             if member_name not in employee_cases:
