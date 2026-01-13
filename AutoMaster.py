@@ -211,21 +211,37 @@ def load_image(image_path, width=None, height=None):
 # ---------------- HELPER FUNCTIONS ---------------- 
 
 def normalize_raw_name(raw_name):
-    
-    # Converts 'First Last - ID' -> 'Last, First'
-    
+    """
+    Converts various name formats to 'Last, First'
+    Handles: 'First Last - ID', 'First Last', 'Last, First'
+    """
     if pd.isna(raw_name):
         return None
-    raw_name = str(raw_name)
-    if "-" not in raw_name:
-        return raw_name.strip()
-    try:
-        name_part = raw_name.split("-")[0].strip()
-        first, last = name_part.split(" ", 1)
-        return f"{last}, {first}"
-    except:
+    
+    raw_name = str(raw_name).strip()
+    
+    # Handle empty strings
+    if not raw_name:
+        return None
+    
+    # Remove ID if present (e.g., "First Last - ID123")
+    if "-" in raw_name:
+        raw_name = raw_name.split("-")[0].strip()
+    
+    # If already in "Last, First" format, return as-is
+    if "," in raw_name:
         return raw_name.strip()
     
+    # Convert "First Last" to "Last, First"
+    parts = raw_name.split()
+    if len(parts) >= 2:
+        first = parts[0]
+        last = " ".join(parts[1:])  # Handle multi-part last names
+        return f"{last}, {first}"
+    
+    # If single name, return as-is
+    return raw_name
+
 def format_assignment_group(group):
     if pd.isna(group):
         return ""
@@ -347,6 +363,7 @@ def process_files():
         return
 
     try:
+        # Read raw data file
         raw_df = pd.read_excel(raw_file)
         location_col = find_column(raw_df, ["Location"])
         assigned_col = find_column(raw_df, ["Assigned to", "Assigned To"])
@@ -354,6 +371,7 @@ def process_files():
         service_col = find_column(raw_df, ["HR Service"])
         assignment_group_col = find_column(raw_df, ["Assignment group"])
 
+        # Read member list file
         member_header_row = detect_header_row(
             member_file,
             required_columns=["Team", "Tenure"]
@@ -362,21 +380,26 @@ def process_files():
         member_name_col = find_column(members_df, ["Team"])
         tenure_col = find_column(members_df, ["Tenure"])
 
+        # Build dictionary of cases per employee
+        # KEY FIX: Normalize names from raw data
         employee_cases = {}
         for _, row in raw_df.iterrows():
             assigned_to = str(row[assigned_col]).strip()
             normalized = normalize_raw_name(assigned_to)
-            employee_cases.setdefault(normalized, []).append(row)
+            if normalized:  # Only add if normalization succeeded
+                employee_cases.setdefault(normalized, []).append(row)
 
-        # CRITICAL FIX: Copy template and load with data_only=False and keep_vba=True
+        # DEBUGGING: Print matching statistics
+        print(f"\n=== MATCHING STATISTICS ===")
+        print(f"Total cases in raw file: {len(raw_df)}")
+        print(f"Unique agents with cases: {len(employee_cases)}")
+        print(f"Total agents in member list: {len(members_df)}")
+        
+        # Copy template and preserve all features
         file_ext = os.path.splitext(qcl_template)[1]
         output_path = qcl_template.replace(file_ext, f"_POPULATED{file_ext}")
-        
-        # Copy the entire file to preserve ALL Excel features
         shutil.copy2(qcl_template, output_path)
         
-        # Load with keep_vba=True and data_only=False to preserve everything
-        # Using read_only=False and keep_links=True for maximum preservation
         wb = load_workbook(
             output_path, 
             keep_vba=True,
@@ -387,18 +410,39 @@ def process_files():
         ws = wb["QA Checks"]
         current_row = find_qcl_start_row(ws)
         control_no = 1
+        
+        # Track processing statistics
+        matched_agents = 0
+        total_cases_written = 0
+        unmatched_agents = []
 
+        # Process each member
         for _, member in members_df.iterrows():
-            member_name = str(member[member_name_col]).strip()
+            member_name_raw = str(member[member_name_col]).strip()
+            # KEY FIX: Normalize member names too
+            member_name = normalize_raw_name(member_name_raw)
             tenure = member[tenure_col]
-            if member_name not in employee_cases or pd.isna(tenure):
+            
+            # Skip if no valid name or tenure
+            if not member_name or pd.isna(tenure):
                 continue
+            
+            # Check if this member has cases
+            if member_name not in employee_cases:
+                unmatched_agents.append(member_name)
+                continue
+            
+            matched_agents += 1
             cases = employee_cases[member_name]
+            
+            # Calculate sample size based on tenure
             sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
             sampled_cases = random.sample(cases, min(sample_size, len(cases)))
+            
+            print(f"Agent: {member_name} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
 
+            # Write sampled cases to QCL
             for case in sampled_cases:
-                # Write directly to cell values - don't modify formulas or formatting
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
                 ws[f"D{current_row}"].value = format_location(case[location_col])
@@ -407,15 +451,33 @@ def process_files():
                 ws[f"G{current_row}"].value = case[service_col]
                 control_no += 1
                 current_row += 1
+                total_cases_written += 1
 
-        # Save with proper settings to preserve VBA and other features
+        # Save workbook
         wb.save(output_path)
         wb.close()
         
-        messagebox.showinfo("Success", f"QCL generated successfully!\n\n{output_path}\n\nAll macros, buttons, tables, and hidden sheets preserved.")
+        # Print final statistics
+        print(f"\n=== FINAL RESULTS ===")
+        print(f"Matched agents: {matched_agents}")
+        print(f"Total cases written: {total_cases_written}")
+        print(f"Unmatched agents: {len(unmatched_agents)}")
+        if unmatched_agents[:5]:  # Show first 5 unmatched
+            print(f"Sample unmatched: {unmatched_agents[:5]}")
+        
+        messagebox.showinfo(
+            "Success", 
+            f"QCL generated successfully!\n\n"
+            f"Output: {output_path}\n\n"
+            f"Matched agents: {matched_agents}\n"
+            f"Cases written: {total_cases_written}\n"
+            f"Unmatched agents: {len(unmatched_agents)}"
+        )
 
     except Exception as e:
         messagebox.showerror("Error", str(e))
+        import traceback
+        traceback.print_exc()
 
 # ---------------- GUI SETUP ---------------- #
 
