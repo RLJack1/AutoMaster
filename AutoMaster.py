@@ -274,11 +274,11 @@ def format_assignment_group(group):
 
 def calculate_sample_percentage(tenure):
     if tenure < 6:
-        return 0.15
+        return 0.15 / 2
     elif tenure < 12:
-        return 0.10
+        return 0.10 / 2
     else:
-        return 0.05
+        return 0.05 / 2
     
 def extract_formatted_prefix(location_code):
     """
@@ -570,7 +570,7 @@ circle_dropdown = tk.OptionMenu(
     "Circle 4 (International Mobility)",
     "Circle 5 (Performance & Rewards)",
     "Circle 6 (Contact Center)",
-    "Circle 7 (Recruitment Admin)"
+    "Circle 6 (Recruitment Admin)"
 )
 circle_dropdown.config(font=("Arial", 11), bg="white", fg="gray", 
                        relief=tk.FLAT, highlightthickness=0, width=35)
