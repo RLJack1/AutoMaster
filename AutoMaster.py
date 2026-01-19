@@ -324,24 +324,24 @@ def find_column(df, possible_names):
                 return col
     raise ValueError(f"Missing required column: {possible_names}")
 
-def find_qcl_start_row(ws):
-    
-    # Finds the first empty row below 'Control Check No.' in column B
-    
+def find_qcl_start_row(ws, search_column="B", search_text="control check no."):
+
+    # Finds the first empty row below a specified search text in a specified column
+
     for row in range(1, ws.max_row + 1):
-        cell_value = ws[f"B{row}"].value
-        if cell_value and str(cell_value).strip().lower() == "control check no.":
+        cell_value = ws[f"{search_column}{row}"].value
+        if cell_value and str(cell_value).strip().lower() == search_text.lower():
             r = row + 1
-            while ws[f"B{r}"].value:
+            while ws[f"{search_column}{r}"].value:
                 r += 1
             return r
-    raise ValueError("Could not find 'Control Check No.' in QCL template.")
+    raise ValueError(f"Could not find '{search_text}' in column {search_column} of QCL template.")
 
 def detect_header_row(file_path, sheet_name=0, required_columns=None):
-    
+
     # Detects the row number containing required column headers.
     # Returns row index to be used as header=.
-    
+
     preview = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
     required_columns = [col.lower() for col in required_columns]
     for idx, row in preview.iterrows():
@@ -350,7 +350,139 @@ def detect_header_row(file_path, sheet_name=0, required_columns=None):
             return idx
     raise ValueError(f"Could not find header row containing: {required_columns}")
 
+def extract_corpkey_from_name(formatted_name):
+
+    # Extracts corp key from "FirstName LastName - CorpKey" format
+    # Returns the corp key or None if not found
+
+    if pd.isna(formatted_name):
+        return None
+
+    formatted_name = str(formatted_name).strip()
+
+    # Check if it contains " - " separator
+    if " - " in formatted_name:
+        parts = formatted_name.split(" - ")
+        if len(parts) >= 2:
+            return parts[-1].strip()  # Return the last part (corp key)
+
+    return None
+
 # ---------------- MAIN PROCESS ---------------- #
+
+def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start):
+
+    # Process QA Reviews - Reopened Cases sheet
+    # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
+
+    try:
+        # Read the "Reopened Cases" sheet from QA Review file
+        reopened_df = pd.read_excel(qa_review_file, sheet_name="Reopened Cases")
+
+        # Find required columns in Reopened Cases sheet
+        # All columns start with "F09 - SNOW HR Cases[XDATA]"
+        assignment_group_col = find_column(reopened_df, ["Assignment group"])  # Column D -> QCL Column C
+        country_code_col = find_column(reopened_df, ["Country code"])  # Column G -> QCL Column D
+        user_id_col = find_column(reopened_df, ["User ID"])  # Column L (corp key only) -> QCL Column E
+        number_col = find_column(reopened_df, ["Number"])  # Column E -> QCL Column F
+        hr_service_col = find_column(reopened_df, ["HR service"])  # Column C -> QCL Column G
+        reopened_reason_col = find_column(reopened_df, ["Re-opened reason"])  # Column AA -> QCL Column I
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column and tenure column
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build corpkey to member mapping
+        corpkey_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'tenure': tenure,
+                    'cases': []
+                }
+
+        # Build dictionary of cases per corpkey
+        for _, row in reopened_df.iterrows():
+            user_id = str(row[user_id_col]).strip()
+            if user_id and user_id.lower() != 'nan':
+                if user_id in corpkey_to_member:
+                    corpkey_to_member[user_id]['cases'].append(row)
+
+        # Access the Reopened Cases sheet
+        if "Reopened Cases" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'Reopened Cases' sheet")
+
+        ws = wb["Reopened Cases"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        matched_agents = 0
+        total_cases_written = 0
+        unmatched_agents = []
+
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            matched_agents += 1
+            tenure = member_data['tenure']
+            member_name = member_data['name']
+
+            # Calculate sample size based on tenure
+            sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
+            sampled_cases = random.sample(cases, min(sample_size, len(cases)))
+
+            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
+
+            # Write sampled cases to QCL - Reopened Cases sheet
+            for case in sampled_cases:
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+                ws[f"D{current_row}"].value = format_location(case[country_code_col])
+                ws[f"E{current_row}"].value = normalize_raw_name(member_name)  # Use member name from Member List
+                ws[f"F{current_row}"].value = case[number_col]
+                ws[f"G{current_row}"].value = case[hr_service_col]
+                ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        # Find unmatched agents (members with no cases)
+        for corpkey, member_data in corpkey_to_member.items():
+            if len(member_data['cases']) == 0:
+                unmatched_agents.append(member_data['name'])
+
+        return control_no, total_cases_written, matched_agents, unmatched_agents
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - Reopened Cases: {str(e)}")
 
 def process_files():
     raw_file = qa_checks_entry.get()
@@ -363,132 +495,184 @@ def process_files():
         return
 
     try:
-        # Read raw data file
-        raw_df = pd.read_excel(raw_file)
-        location_col = find_column(raw_df, ["Location"])
-        assigned_col = find_column(raw_df, ["Assigned to", "Assigned To"])
-        case_id_col = find_column(raw_df, ["Number"])
-        service_col = find_column(raw_df, ["HR Service"])
-        assignment_group_col = find_column(raw_df, ["Assignment group"])
-
-        # Read member list file
-        member_header_row = detect_header_row(
-            member_file,
-            required_columns=["Team", "Tenure"]
-        )
-        members_df = pd.read_excel(member_file, header=member_header_row)
-        
-        # Try to find the formatted name column (column G with formula)
-        formatted_name_col = None
-        try:
-            # Look for a column that contains " - " pattern (name with corpkey)
-            for col in members_df.columns:
-                sample_values = members_df[col].dropna().astype(str).head(5)
-                if any(" - " in val for val in sample_values):
-                    formatted_name_col = col
-                    print(f"Found formatted name column: {col}")
-                    break
-        except:
-            pass
-        
-        # Fallback to Team column if formatted column not found
-        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
-        tenure_col = find_column(members_df, ["Tenure"])
-
-        # Build dictionary of cases per employee
-        # Use the raw "FirstName LastName - CorpKey" format from both files
-        employee_cases = {}
-        for _, row in raw_df.iterrows():
-            assigned_to = str(row[assigned_col]).strip()
-            if assigned_to and assigned_to.lower() != 'nan':
-                # Store with the raw format (no normalization needed!)
-                employee_cases.setdefault(assigned_to, []).append(row)
-
-        # DEBUGGING: Print matching statistics
-        print(f"\n=== MATCHING STATISTICS ===")
-        print(f"Total cases in raw file: {len(raw_df)}")
-        print(f"Unique agents with cases: {len(employee_cases)}")
-        print(f"Total agents in member list: {len(members_df)}")
-        
-        # Copy template and preserve all features
+        # Copy template and preserve all features first
         file_ext = os.path.splitext(qcl_template)[1]
         output_path = qcl_template.replace(file_ext, f"_POPULATED{file_ext}")
         shutil.copy2(qcl_template, output_path)
-        
+
         wb = load_workbook(
-            output_path, 
+            output_path,
             keep_vba=True,
             data_only=False,
             keep_links=True
         )
-        
-        ws = wb["QA Checks"]
-        current_row = find_qcl_start_row(ws)
-        control_no = 1
-        
-        # Track processing statistics
-        matched_agents = 0
-        total_cases_written = 0
-        unmatched_agents = []
 
-        # Process each member
-        for _, member in members_df.iterrows():
-            member_name_raw = str(member[member_name_col]).strip()
-            tenure = member[tenure_col]
-            
-            # Skip if no valid name or tenure
-            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
-                continue
-            
-            # Use the raw formatted name directly (no normalization!)
-            member_name = member_name_raw
-            
-            # Check if this member has cases
-            if member_name not in employee_cases:
-                unmatched_agents.append(member_name)
-                continue
-            
-            matched_agents += 1
-            cases = employee_cases[member_name]
-            
-            # Calculate sample size based on tenure
-            sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
-            sampled_cases = random.sample(cases, min(sample_size, len(cases)))
-            
-            print(f"Agent: {member_name} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
+        # Initialize statistics
+        qa_checks_stats = None
+        qa_reviews_stats = None
 
-            # Write sampled cases to QCL
-            for case in sampled_cases:
-                ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-                ws[f"D{current_row}"].value = format_location(case[location_col])
-                ws[f"E{current_row}"].value = normalize_raw_name(case[assigned_col])
-                ws[f"F{current_row}"].value = case[case_id_col]
-                ws[f"G{current_row}"].value = case[service_col]
-                control_no += 1
-                current_row += 1
-                total_cases_written += 1
+        # ========== PROCESS QA CHECKS ==========
+        if raw_file:
+            print("\n========== PROCESSING QA CHECKS ==========")
+
+            # Read raw data file
+            raw_df = pd.read_excel(raw_file)
+            location_col = find_column(raw_df, ["Location"])
+            assigned_col = find_column(raw_df, ["Assigned to", "Assigned To"])
+            case_id_col = find_column(raw_df, ["Number"])
+            service_col = find_column(raw_df, ["HR Service"])
+            assignment_group_col = find_column(raw_df, ["Assignment group"])
+
+            # Read member list file
+            member_header_row = detect_header_row(
+                member_file,
+                required_columns=["Team", "Tenure"]
+            )
+            members_df = pd.read_excel(member_file, header=member_header_row)
+
+            # Try to find the formatted name column (column G with formula)
+            formatted_name_col = None
+            try:
+                # Look for a column that contains " - " pattern (name with corpkey)
+                for col in members_df.columns:
+                    sample_values = members_df[col].dropna().astype(str).head(5)
+                    if any(" - " in val for val in sample_values):
+                        formatted_name_col = col
+                        print(f"Found formatted name column: {col}")
+                        break
+            except:
+                pass
+
+            # Fallback to Team column if formatted column not found
+            member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+            tenure_col = find_column(members_df, ["Tenure"])
+
+            # Build dictionary of cases per employee
+            # Use the raw "FirstName LastName - CorpKey" format from both files
+            employee_cases = {}
+            for _, row in raw_df.iterrows():
+                assigned_to = str(row[assigned_col]).strip()
+                if assigned_to and assigned_to.lower() != 'nan':
+                    # Store with the raw format (no normalization needed!)
+                    employee_cases.setdefault(assigned_to, []).append(row)
+
+            # DEBUGGING: Print matching statistics
+            print(f"\n=== MATCHING STATISTICS ===")
+            print(f"Total cases in raw file: {len(raw_df)}")
+            print(f"Unique agents with cases: {len(employee_cases)}")
+            print(f"Total agents in member list: {len(members_df)}")
+
+            ws = wb["QA Checks"]
+            current_row = find_qcl_start_row(ws)
+            control_no = 1
+
+            # Track processing statistics
+            matched_agents = 0
+            total_cases_written = 0
+            unmatched_agents = []
+
+            # Process each member
+            for _, member in members_df.iterrows():
+                member_name_raw = str(member[member_name_col]).strip()
+                tenure = member[tenure_col]
+
+                # Skip if no valid name or tenure
+                if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                    continue
+
+                # Use the raw formatted name directly (no normalization!)
+                member_name = member_name_raw
+
+                # Check if this member has cases
+                if member_name not in employee_cases:
+                    unmatched_agents.append(member_name)
+                    continue
+
+                matched_agents += 1
+                cases = employee_cases[member_name]
+
+                # Calculate sample size based on tenure
+                sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
+                sampled_cases = random.sample(cases, min(sample_size, len(cases)))
+
+                print(f"Agent: {member_name} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
+
+                # Write sampled cases to QCL
+                for case in sampled_cases:
+                    ws[f"B{current_row}"].value = control_no
+                    ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+                    ws[f"D{current_row}"].value = format_location(case[location_col])
+                    ws[f"E{current_row}"].value = normalize_raw_name(case[assigned_col])
+                    ws[f"F{current_row}"].value = case[case_id_col]
+                    ws[f"G{current_row}"].value = case[service_col]
+                    control_no += 1
+                    current_row += 1
+                    total_cases_written += 1
+
+            # Print final statistics
+            print(f"\n=== QA CHECKS FINAL RESULTS ===")
+            print(f"Matched agents: {matched_agents}")
+            print(f"Total cases written: {total_cases_written}")
+            print(f"Unmatched agents: {len(unmatched_agents)}")
+            if unmatched_agents[:5]:  # Show first 5 unmatched
+                print(f"Sample unmatched: {unmatched_agents[:5]}")
+
+            qa_checks_stats = {
+                'matched': matched_agents,
+                'cases': total_cases_written,
+                'unmatched': len(unmatched_agents)
+            }
+
+        # ========== PROCESS QA REVIEWS - REOPENED CASES ==========
+        if qa_review_file:
+            print("\n========== PROCESSING QA REVIEWS - REOPENED CASES ==========")
+
+            try:
+                control_no_start = 1  # Start from 1 for QA Reviews
+                _, cases_written, matched, unmatched_list = process_qa_reviews_reopened_cases(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start
+                )
+
+                print(f"\n=== QA REVIEWS FINAL RESULTS ===")
+                print(f"Matched agents: {matched}")
+                print(f"Total cases written: {cases_written}")
+                print(f"Unmatched agents: {len(unmatched_list)}")
+                if unmatched_list[:5]:
+                    print(f"Sample unmatched: {unmatched_list[:5]}")
+
+                qa_reviews_stats = {
+                    'matched': matched,
+                    'cases': cases_written,
+                    'unmatched': len(unmatched_list)
+                }
+            except Exception as e:
+                print(f"Warning: Could not process QA Reviews - {str(e)}")
+                qa_reviews_stats = None
 
         # Save workbook
         wb.save(output_path)
         wb.close()
-        
-        # Print final statistics
-        print(f"\n=== FINAL RESULTS ===")
-        print(f"Matched agents: {matched_agents}")
-        print(f"Total cases written: {total_cases_written}")
-        print(f"Unmatched agents: {len(unmatched_agents)}")
-        if unmatched_agents[:5]:  # Show first 5 unmatched
-            print(f"Sample unmatched: {unmatched_agents[:5]}")
-        
-        messagebox.showinfo(
-            "Success", 
-            f"QCL generated successfully!\n\n"
-            f"Output: {output_path}\n\n"
-            f"Matched agents: {matched_agents}\n"
-            f"Cases written: {total_cases_written}\n"
-            f"Unmatched agents: {len(unmatched_agents)}"
-        )
+
+        # Build success message
+        success_msg = "QCL generated successfully!\n\n"
+        success_msg += f"Output: {output_path}\n\n"
+
+        if qa_checks_stats:
+            success_msg += "=== QA CHECKS ===\n"
+            success_msg += f"Matched agents: {qa_checks_stats['matched']}\n"
+            success_msg += f"Cases written: {qa_checks_stats['cases']}\n"
+            success_msg += f"Unmatched agents: {qa_checks_stats['unmatched']}\n\n"
+
+        if qa_reviews_stats:
+            success_msg += "=== QA REVIEWS (Reopened Cases) ===\n"
+            success_msg += f"Matched agents: {qa_reviews_stats['matched']}\n"
+            success_msg += f"Cases written: {qa_reviews_stats['cases']}\n"
+            success_msg += f"Unmatched agents: {qa_reviews_stats['unmatched']}"
+
+        messagebox.showinfo("Success", success_msg)
 
     except Exception as e:
         messagebox.showerror("Error", str(e))
