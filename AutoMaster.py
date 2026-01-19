@@ -18,7 +18,13 @@ COUNTRY_LOCATION_MAP = {
     "Australia": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "SYD", "TUG", "WYN", "AU", "OVR", 
+            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU"
+        ]
+    },
+    "Austria": {
+        "formatted_prefixes": ["PH2_AT"],
+        "arbitrary_codes": [
+            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU"
         ]
     },
     "Belgium": {
@@ -30,7 +36,7 @@ COUNTRY_LOCATION_MAP = {
     "China": {
         "formatted_prefixes": ["PH2_CN"],
         "arbitrary_codes": [
-            
+            "CN", "China"
         ]
     },
     "Czech Republic": {
@@ -54,19 +60,13 @@ COUNTRY_LOCATION_MAP = {
     "Hong Kong": {
         "formatted_prefixes": ["PH2_HK"],
         "arbitrary_codes": [
-            "Hong Kong"
+            "Hong Kong", "HK", "Hk"
         ]
     },
     "Hungary": {
         "formatted_prefixes": ["PH2_HU"],
         "arbitrary_codes": [
             "HU"
-        ]
-    },
-    "Hong Kong": {
-        "formatted_prefixes": [""],
-        "arbitrary_codes": [
-            "Hk"
         ]
     },
     "Ireland": {
@@ -84,6 +84,7 @@ COUNTRY_LOCATION_MAP = {
     "Japan": {
         "formatted_prefixes": ["PH2_JP"],
         "arbitrary_codes": [
+            "Japan"
         ]
     },
     "Luxembourg": {
@@ -92,18 +93,28 @@ COUNTRY_LOCATION_MAP = {
             "LU"
         ]
     },
+    "Mexico": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MX"
+        ]
+    },
     "Netherlands": {
         "formatted_prefixes": ["Guest NL"],
         "arbitrary_codes": [
-            "ACT", "ALP", "AME", "BMG", 
-            "CDR", "DP", "HBP", "KBK",
-            "KCC", "KCM", "KFL", "KFR", 
-            "KGD", "KMH", "KNF", "KQB",
-            "KQB", "KSY", "KXS", "KZK", 
-            "KZR", "LZ", "RBG", "WBM",
-            "WP", "NL", "AT", "IE", 
-            "RO", "KNZ", "KBE", "Guest NL - Guest.NL",
-            "KLQ", "KQT", "DEA"
+            "ACT", "ALP", "AME", "AT",
+            "BMG", 
+            "CDR", 
+            "DEA", "DP", 
+            "HBP",
+            "IE",
+            "KBK","KCC", "KCM", "KFL", "KFR", "KGD", "KMH", "KNF", "KQB", "KQB", "KSY", "KXS", "KZK", "KZR", "KNZ", "KBE", "KLQ", "KQT",
+            "LZ",
+            "NL", "RO",
+            "RBG", 
+            "WP","WBM",
+            "Guest NL - Guest.NL",
+            
         ]
     },
     "Philippines": {
@@ -118,6 +129,12 @@ COUNTRY_LOCATION_MAP = {
             "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
         ]
     },
+    "Portugal": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PT",
+        ]
+    },
     "Romania": {
         "formatted_prefixes": ["PH1_RO"],
         "arbitrary_codes": [
@@ -127,7 +144,7 @@ COUNTRY_LOCATION_MAP = {
     "Russian Federation": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "RUSMCW001"
+            "RUSMCW001", "RU"
         ]
     },
     "Singapore": {
@@ -139,7 +156,7 @@ COUNTRY_LOCATION_MAP = {
     "Slovakia": {
         "formatted_prefixes": ["PH1_SK","PH2_SK"],
         "arbitrary_codes": [
-            "SK"
+            "SK",
         ]
     },
     "South Korea": {
@@ -161,6 +178,7 @@ COUNTRY_LOCATION_MAP = {
     "Switzerland": {
         "formatted_prefixes": ["PH2_CH"],
         "arbitrary_codes": [
+            "CH"
         ]
     },
     "Taiwan": {
@@ -380,6 +398,42 @@ def extract_corpkey_from_name(formatted_name):
 
     return None
 
+# def get_circle_number(assignment_group):
+
+#     # Maps assignment group to circle number (1-6)
+#     # Circle 1: Human Capital Management and Org Management
+#     # Circle 2: Expense, Travel, and Reporting
+#     # Circle 3: Learning
+#     # Circle 4: International Mobility
+#     # Circle 5: Performance & Rewards
+#     # Circle 6: Contact Center and Recruitment Admin
+
+#     if pd.isna(assignment_group):
+#         return 999  # Unknown groups go to the end
+
+#     group_lower = str(assignment_group).lower()
+
+#     # Circle 1
+#     if "human capital management" in group_lower or "hcm" in group_lower or "org management" in group_lower or "organizational management" in group_lower:
+#         return 1
+#     # Circle 2
+#     elif "expense" in group_lower or "travel" in group_lower or "reporting" in group_lower:
+#         return 2
+#     # Circle 3
+#     elif "learning" in group_lower:
+#         return 3
+#     # Circle 4
+#     elif "international mobility" in group_lower or "mobility" in group_lower:
+#         return 4
+#     # Circle 5
+#     elif "performance" in group_lower or "rewards" in group_lower or "compensation" in group_lower or "benefits" in group_lower:
+#         return 5
+#     # Circle 6
+#     elif "contact center" in group_lower or "people services" in group_lower or "recruitment admin" in group_lower:
+#         return 6
+#     else:
+#         return 999  # Unknown groups go to the end
+
 # ---------------- MAIN PROCESS ---------------- #
 
 def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start):
@@ -449,12 +503,29 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                     'cases': []
                 }
 
-        # Build dictionary of cases per corpkey
-        for _, row in reopened_df.iterrows():
-            user_id = str(row[user_id_col]).strip()
-            if user_id and user_id.lower() != 'nan':
-                if user_id in corpkey_to_member:
-                    corpkey_to_member[user_id]['cases'].append(row)
+        # Collect all cases with their metadata
+        # all_cases = []
+        # for _, row in reopened_df.iterrows():
+        #     user_id = str(row[user_id_col]).strip()
+
+        #     # Get team name from member list if corpkey matches, otherwise use empty
+        #     team_name = ""
+        #     if user_id and user_id.lower() != 'nan' and user_id in corpkey_to_member:
+        #         team_name = corpkey_to_member[user_id]['team_name']
+
+        #     # Get assignment group and calculate circle number for sorting
+        #     assignment_group = row[assignment_group_col]
+        #     circle_num = get_circle_number(assignment_group)
+
+        #     all_cases.append({
+        #         'row': row,
+        #         'team_name': team_name,
+        #         'circle': circle_num,
+        #         'assignment_group': assignment_group
+        #     })
+
+        # # Sort all cases by circle number (ascending)
+        # all_cases.sort(key=lambda x: x['circle'])
 
         # Access the Reopened Cases sheet
         if "Reopened Cases" not in wb.sheetnames:
@@ -465,47 +536,38 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         control_no = control_no_start
 
         # Track statistics
-        matched_agents = 0
         total_cases_written = 0
-        unmatched_agents = []
+        matched_agents = set()
+        unmatched_count = 0
 
-        # Process each member with cases
-        for corpkey, member_data in corpkey_to_member.items():
-            cases = member_data['cases']
+        # Write all cases to QCL - Reopened Cases sheet (sorted by circle)
+        for case_data in all_cases:
+            case = case_data['row']
+            team_name = case_data['team_name']
 
-            if len(cases) == 0:
-                continue
+            # Track matched agents
+            user_id = str(case[user_id_col]).strip()
+            if user_id and user_id in corpkey_to_member:
+                matched_agents.add(user_id)
+            elif user_id and user_id.lower() != 'nan':
+                unmatched_count += 1
 
-            matched_agents += 1
-            tenure = member_data['tenure']
-            member_name = member_data['name']
+            ws[f"B{current_row}"].value = control_no
+            ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+            ws[f"D{current_row}"].value = format_location(case[country_code_col])
+            ws[f"E{current_row}"].value = team_name if team_name else ""  # Use Team column name or empty
+            ws[f"F{current_row}"].value = case[number_col]
+            ws[f"G{current_row}"].value = case[hr_service_col]
+            ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
 
-            # Calculate sample size based on tenure
-            sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
-            sampled_cases = random.sample(cases, min(sample_size, len(cases)))
+            control_no += 1
+            current_row += 1
+            total_cases_written += 1
 
-            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
+        print(f"Total cases processed: {total_cases_written}")
+        print(f"Cases organized by circle (1-6)")
 
-            # Write sampled cases to QCL - Reopened Cases sheet
-            for case in sampled_cases:
-                ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-                ws[f"D{current_row}"].value = format_location(case[country_code_col])
-                ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
-                ws[f"F{current_row}"].value = case[number_col]
-                ws[f"G{current_row}"].value = case[hr_service_col]
-                ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
-
-                control_no += 1
-                current_row += 1
-                total_cases_written += 1
-
-        # Find unmatched agents (members with no cases)
-        for corpkey, member_data in corpkey_to_member.items():
-            if len(member_data['cases']) == 0:
-                unmatched_agents.append(member_data['name'])
-
-        return control_no, total_cases_written, matched_agents, unmatched_agents
+        return control_no, total_cases_written, len(matched_agents), unmatched_count
 
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Reopened Cases: {str(e)}")
