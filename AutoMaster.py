@@ -418,7 +418,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         )
         members_df = pd.read_excel(member_file, header=member_header_row)
 
-        # Find formatted name column and tenure column
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
         formatted_name_col = None
         for col in members_df.columns:
             sample_values = members_df[col].dropna().astype(str).head(5)
@@ -427,12 +427,14 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 break
 
         member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
         tenure_col = find_column(members_df, ["Tenure"])
 
         # Build corpkey to member mapping
         corpkey_to_member = {}
         for _, member in members_df.iterrows():
             member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
             tenure = member[tenure_col]
 
             if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
@@ -442,6 +444,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
             if corpkey:
                 corpkey_to_member[corpkey] = {
                     'name': member_name_raw,
+                    'team_name': team_name,  # Store the Team column name for display
                     'tenure': tenure,
                     'cases': []
                 }
@@ -488,7 +491,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
                 ws[f"D{current_row}"].value = format_location(case[country_code_col])
-                ws[f"E{current_row}"].value = normalize_raw_name(member_name)  # Use member name from Member List
+                ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
                 ws[f"F{current_row}"].value = case[number_col]
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
