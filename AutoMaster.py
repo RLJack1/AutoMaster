@@ -380,13 +380,24 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         reopened_df = pd.read_excel(qa_review_file, sheet_name="Reopened Cases")
 
         # Find required columns in Reopened Cases sheet
-        # All columns start with "F09 - SNOW HR Cases[XDATA]"
-        assignment_group_col = find_column(reopened_df, ["Assignment group"])  # Column D -> QCL Column C
-        country_code_col = find_column(reopened_df, ["Country code"])  # Column G -> QCL Column D
-        user_id_col = find_column(reopened_df, ["User ID"])  # Column L (corp key only) -> QCL Column E
-        number_col = find_column(reopened_df, ["Number"])  # Column E -> QCL Column F
-        hr_service_col = find_column(reopened_df, ["HR service"])  # Column C -> QCL Column G
-        reopened_reason_col = find_column(reopened_df, ["Re-opened reason"])  # Column AA -> QCL Column I
+        # All columns follow format: "F09 - SNOW HR Cases[Column Name]"
+        # We'll search for columns that contain the target name within brackets
+        def find_column_containing(df, search_terms):
+            """Find column that contains any of the search terms (case-insensitive)"""
+            for col in df.columns:
+                col_lower = str(col).strip().lower()
+                for term in search_terms:
+                    # Check if the term is in the column name (handles both bracket and non-bracket formats)
+                    if f"[{term.strip().lower()}]" in col_lower or term.strip().lower() in col_lower:
+                        return col
+            raise ValueError(f"Missing required column containing: {search_terms}")
+
+        assignment_group_col = find_column_containing(reopened_df, ["assignment group"])  # Column D -> QCL Column C
+        country_code_col = find_column_containing(reopened_df, ["country code"])  # Column G -> QCL Column D
+        user_id_col = find_column_containing(reopened_df, ["user id"])  # Column L (corp key only) -> QCL Column E
+        number_col = find_column_containing(reopened_df, ["number"])  # Column E -> QCL Column F
+        hr_service_col = find_column_containing(reopened_df, ["hr service"])  # Column C -> QCL Column G
+        reopened_reason_col = find_column_containing(reopened_df, ["re-opened reason", "reopened reason"])  # Column AA -> QCL Column I
 
         # Read member list file
         member_header_row = detect_header_row(
