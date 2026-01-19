@@ -63,6 +63,12 @@ COUNTRY_LOCATION_MAP = {
             "HU"
         ]
     },
+    "Hong Kong": {
+        "formatted_prefixes": [""],
+        "arbitrary_codes": [
+            "Hk"
+        ]
+    },
     "Ireland": {
         "formatted_prefixes": ["PH2_IE"],
         "arbitrary_codes": [
@@ -182,6 +188,12 @@ COUNTRY_LOCATION_MAP = {
     "United States": {
         "formatted_prefixes": ["PH2_US"],
         "arbitrary_codes": [
+        ]
+    },
+    "Vietnam": {
+        "formatted_prefixes": [""],
+        "arbitrary_codes": [
+            "Vn"
         ]
     },
 }
