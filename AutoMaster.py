@@ -18,7 +18,13 @@ COUNTRY_LOCATION_MAP = {
     "Australia": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "SYD", "TUG", "WYN", "AU", "OVR", 
+            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU"
+        ]
+    },
+    "Austria": {
+        "formatted_prefixes": ["PH2_AT"],
+        "arbitrary_codes": [
+            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU"
         ]
     },
     "Belgium": {
@@ -30,7 +36,7 @@ COUNTRY_LOCATION_MAP = {
     "China": {
         "formatted_prefixes": ["PH2_CN"],
         "arbitrary_codes": [
-            
+            "CN", "China"
         ]
     },
     "Czech Republic": {
@@ -54,19 +60,13 @@ COUNTRY_LOCATION_MAP = {
     "Hong Kong": {
         "formatted_prefixes": ["PH2_HK"],
         "arbitrary_codes": [
-            "Hong Kong"
+            "Hong Kong", "HK", "Hk"
         ]
     },
     "Hungary": {
         "formatted_prefixes": ["PH2_HU"],
         "arbitrary_codes": [
             "HU"
-        ]
-    },
-    "Hong Kong": {
-        "formatted_prefixes": [""],
-        "arbitrary_codes": [
-            "Hk"
         ]
     },
     "Ireland": {
@@ -84,6 +84,7 @@ COUNTRY_LOCATION_MAP = {
     "Japan": {
         "formatted_prefixes": ["PH2_JP"],
         "arbitrary_codes": [
+            "Japan"
         ]
     },
     "Luxembourg": {
@@ -92,18 +93,28 @@ COUNTRY_LOCATION_MAP = {
             "LU"
         ]
     },
+    "Mexico": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MX"
+        ]
+    },
     "Netherlands": {
         "formatted_prefixes": ["Guest NL"],
         "arbitrary_codes": [
-            "ACT", "ALP", "AME", "BMG", 
-            "CDR", "DP", "HBP", "KBK",
-            "KCC", "KCM", "KFL", "KFR", 
-            "KGD", "KMH", "KNF", "KQB",
-            "KQB", "KSY", "KXS", "KZK", 
-            "KZR", "LZ", "RBG", "WBM",
-            "WP", "NL", "AT", "IE", 
-            "RO", "KNZ", "KBE", "Guest NL - Guest.NL",
-            "KLQ", "KQT", "DEA"
+            "ACT", "ALP", "AME", "AT",
+            "BMG", 
+            "CDR", 
+            "DEA", "DP", 
+            "HBP",
+            "IE",
+            "KBK","KCC", "KCM", "KFL", "KFR", "KGD", "KMH", "KNF", "KQB", "KQB", "KSY", "KXS", "KZK", "KZR", "KNZ", "KBE", "KLQ", "KQT",
+            "LZ",
+            "NL", "RO",
+            "RBG", 
+            "WP","WBM",
+            "Guest NL - Guest.NL",
+            
         ]
     },
     "Philippines": {
@@ -118,6 +129,12 @@ COUNTRY_LOCATION_MAP = {
             "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
         ]
     },
+    "Portugal": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PT",
+        ]
+    },
     "Romania": {
         "formatted_prefixes": ["PH1_RO"],
         "arbitrary_codes": [
@@ -127,7 +144,7 @@ COUNTRY_LOCATION_MAP = {
     "Russian Federation": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "RUSMCW001"
+            "RUSMCW001", "RU"
         ]
     },
     "Singapore": {
@@ -139,7 +156,7 @@ COUNTRY_LOCATION_MAP = {
     "Slovakia": {
         "formatted_prefixes": ["PH1_SK","PH2_SK"],
         "arbitrary_codes": [
-            "SK"
+            "SK",
         ]
     },
     "South Korea": {
@@ -161,6 +178,7 @@ COUNTRY_LOCATION_MAP = {
     "Switzerland": {
         "formatted_prefixes": ["PH2_CH"],
         "arbitrary_codes": [
+            "CH"
         ]
     },
     "Taiwan": {
@@ -480,14 +498,10 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
             tenure = member_data['tenure']
             member_name = member_data['name']
 
-            # Calculate sample size based on tenure
-            sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
-            sampled_cases = random.sample(cases, min(sample_size, len(cases)))
+            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)}")
 
-            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
-
-            # Write sampled cases to QCL - Reopened Cases sheet
-            for case in sampled_cases:
+            # Write ALL cases to QCL - Reopened Cases sheet (no sampling)
+            for case in cases:
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
                 ws[f"D{current_row}"].value = format_location(case[country_code_col])
