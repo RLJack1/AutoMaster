@@ -570,37 +570,51 @@ def process_files():
             )
             members_df = pd.read_excel(member_file, header=member_header_row)
 
-            # Try to find the formatted name column (column G with formula)
+            # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
             formatted_name_col = None
-            try:
-                # Look for a column that contains " - " pattern (name with corpkey)
-                for col in members_df.columns:
-                    sample_values = members_df[col].dropna().astype(str).head(5)
-                    if any(" - " in val for val in sample_values):
-                        formatted_name_col = col
-                        print(f"Found formatted name column: {col}")
-                        break
-            except:
-                pass
+            for col in members_df.columns:
+                sample_values = members_df[col].dropna().astype(str).head(5)
+                if any(" - " in val for val in sample_values):
+                    formatted_name_col = col
+                    break
 
-            # Fallback to Team column if formatted column not found
             member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+            team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
             tenure_col = find_column(members_df, ["Tenure"])
 
-            # Build dictionary of cases per employee
-            # Use the raw "FirstName LastName - CorpKey" format from both files
-            employee_cases = {}
+            # Build corpkey to member mapping
+            corpkey_to_member = {}
+            for _, member in members_df.iterrows():
+                member_name_raw = str(member[member_name_col]).strip()
+                team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
+                tenure = member[tenure_col]
+
+                if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                    continue
+
+                corpkey = extract_corpkey_from_name(member_name_raw)
+                if corpkey:
+                    corpkey_to_member[corpkey] = {
+                        'name': member_name_raw,
+                        'team_name': team_name,  # Store the Team column name for display
+                        'tenure': tenure,
+                        'cases': []
+                    }
+
+            # Build dictionary of cases per corpkey
             for _, row in raw_df.iterrows():
                 assigned_to = str(row[assigned_col]).strip()
                 if assigned_to and assigned_to.lower() != 'nan':
-                    # Store with the raw format (no normalization needed!)
-                    employee_cases.setdefault(assigned_to, []).append(row)
+                    # Extract corpkey from assigned_to field
+                    corpkey = extract_corpkey_from_name(assigned_to)
+                    if corpkey and corpkey in corpkey_to_member:
+                        corpkey_to_member[corpkey]['cases'].append(row)
 
             # DEBUGGING: Print matching statistics
             print(f"\n=== MATCHING STATISTICS ===")
             print(f"Total cases in raw file: {len(raw_df)}")
-            print(f"Unique agents with cases: {len(employee_cases)}")
             print(f"Total agents in member list: {len(members_df)}")
+            print(f"Agents with corp keys: {len(corpkey_to_member)}")
 
             ws = wb["QA Checks"]
             current_row = find_qcl_start_row(ws)
@@ -611,38 +625,30 @@ def process_files():
             total_cases_written = 0
             unmatched_agents = []
 
-            # Process each member
-            for _, member in members_df.iterrows():
-                member_name_raw = str(member[member_name_col]).strip()
-                tenure = member[tenure_col]
+            # Process each member with cases
+            for corpkey, member_data in corpkey_to_member.items():
+                cases = member_data['cases']
 
-                # Skip if no valid name or tenure
-                if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
-                    continue
-
-                # Use the raw formatted name directly (no normalization!)
-                member_name = member_name_raw
-
-                # Check if this member has cases
-                if member_name not in employee_cases:
-                    unmatched_agents.append(member_name)
+                if len(cases) == 0:
+                    unmatched_agents.append(member_data['name'])
                     continue
 
                 matched_agents += 1
-                cases = employee_cases[member_name]
+                tenure = member_data['tenure']
+                member_name = member_data['name']
 
                 # Calculate sample size based on tenure
                 sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
                 sampled_cases = random.sample(cases, min(sample_size, len(cases)))
 
-                print(f"Agent: {member_name} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
+                print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
 
                 # Write sampled cases to QCL
                 for case in sampled_cases:
                     ws[f"B{current_row}"].value = control_no
                     ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
                     ws[f"D{current_row}"].value = format_location(case[location_col])
-                    ws[f"E{current_row}"].value = normalize_raw_name(case[assigned_col])
+                    ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
                     ws[f"F{current_row}"].value = case[case_id_col]
                     ws[f"G{current_row}"].value = case[service_col]
                     control_no += 1
