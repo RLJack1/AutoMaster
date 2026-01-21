@@ -343,6 +343,41 @@ def format_location(raw_location):
     # Fallback if no match
     return raw_location.title()
 
+def infer_location_from_opened_for(opened_for_value):
+    """
+    Infers location from 'Opened for' field by checking for guest account patterns
+    like "Guest XX - Guest.XX" where XX is a country code
+    Returns the country name if found, empty string otherwise
+    """
+    if pd.isna(opened_for_value):
+        return ""
+    
+    opened_for_str = str(opened_for_value).strip()
+    
+    # Check against all arbitrary codes in the country location map
+    for country, rules in COUNTRY_LOCATION_MAP.items():
+        for code in rules.get("arbitrary_codes", []):
+            # Check if the code appears in the opened_for field (case-insensitive)
+            if code.upper() in opened_for_str.upper():
+                return country
+    
+    return ""
+
+def get_case_location(location_value, opened_for_value):
+    """
+    Gets the location for a case, trying Location first, then falling back to Opened for
+    """
+    # Try to get location from Location column first
+    location = format_location(location_value)
+    
+    # If location is missing or couldn't be determined, try to infer from Opened for
+    if not location or location == str(location_value).title():
+        inferred = infer_location_from_opened_for(opened_for_value)
+        if inferred:
+            return inferred
+    
+    return location
+
 def find_column(df, possible_names):
     # Finds a column in df whose header matches one of the possible_names.
     # Matching is case-insensitive.
@@ -562,6 +597,7 @@ def process_files():
             case_id_col = find_column(raw_df, ["Number"])
             service_col = find_column(raw_df, ["HR Service"])
             assignment_group_col = find_column(raw_df, ["Assignment group"])
+            opened_for_col = find_column(raw_df, ["Opened for", "Opened For"])
 
             # Read member list file
             member_header_row = detect_header_row(
@@ -647,7 +683,7 @@ def process_files():
                 for case in sampled_cases:
                     ws[f"B{current_row}"].value = control_no
                     ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-                    ws[f"D{current_row}"].value = format_location(case[location_col])
+                    ws[f"D{current_row}"].value = get_case_location(case[location_col], case[opened_for_col])
                     ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
                     ws[f"F{current_row}"].value = case[case_id_col]
                     ws[f"G{current_row}"].value = case[service_col]
