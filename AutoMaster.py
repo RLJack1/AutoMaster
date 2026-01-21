@@ -30,7 +30,7 @@ COUNTRY_LOCATION_MAP = {
     "Belgium": {
         "formatted_prefixes": ["PH3_BE_ING_BANK", "PH3_BE"],
         "arbitrary_codes": [
-            "BE", "M1 03 14"
+            "BE", "M1 03 14", "Guest BE - Guest.BE"
         ]
     },
     "China": {
@@ -114,7 +114,6 @@ COUNTRY_LOCATION_MAP = {
             "RBG", 
             "WP","WBM",
             "Guest NL - Guest.NL",
-            
         ]
     },
     "Philippines": {
@@ -150,7 +149,7 @@ COUNTRY_LOCATION_MAP = {
     "Singapore": {
         "formatted_prefixes": ["PH2_SG"],
         "arbitrary_codes": [
-            "SG", "Guest Asia - Guest.Asia"
+            "SG", "Guest Asia - Guest.Asia", "Guest ASIA - Guest.ASIA"
         ]
     },
     "Slovakia": {
@@ -162,6 +161,7 @@ COUNTRY_LOCATION_MAP = {
     "South Korea": {
         "formatted_prefixes": ["PH2_KR"],
         "arbitrary_codes": [
+            "Kr", "KR"
         ]
     },
     "Spain": {
@@ -201,6 +201,7 @@ COUNTRY_LOCATION_MAP = {
     "United Kingdom": {
         "formatted_prefixes": ["PH2_GB"],
         "arbitrary_codes": [
+            "Guest UK - Guest.UK"
         ]
     },
     "United States": {
