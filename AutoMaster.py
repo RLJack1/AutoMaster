@@ -303,6 +303,40 @@ def format_assignment_group(group):
     else:
         return group.title()
 
+def calculate_csat_type(csat_score):
+    """
+    Calculates CSAT Type based on CSAT Score
+    1-2 = Dissatisfied
+    3 = Neutral
+    4-5 = Satisfied
+    """
+    if pd.isna(csat_score):
+        return ""
+    
+    try:
+        score = int(csat_score)
+        if score >= 1 and score <= 2:
+            return "Dissatisfied"
+        elif score == 3:
+            return "Neutral"
+        elif score >= 4 and score <= 5:
+            return "Satisfied"
+        else:
+            return ""
+    except:
+        return ""
+
+def calculate_response_category(comment):
+    """
+    Calculates Response Category based on Comments
+    If comment is empty/blank = "No comment"
+    Otherwise = leave blank
+    """
+    if pd.isna(comment) or str(comment).strip() == "":
+        return "No comment"
+    else:
+        return ""
+
 def calculate_sample_percentage(tenure):
     if tenure < 6:
         return 0.15 / 2
@@ -587,7 +621,7 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
         number_col = find_column_containing(breached_df, ["number"])  # Column C -> QCL Column E
         hr_service_col = find_column_containing(breached_df, ["hr service"])  # Column D -> QCL Column F
         resolution_type_col = find_column_containing(breached_df, ["resolution type"])  # Column E -> QCL Column G
-        breach_reason_col = find_column_containing(breached_df, ["sla breach reason"])  # Column AA -> QCL Column I
+        breach_reason_col = find_column_containing(breached_df, ["sla breach reason"])  # Column AA -> QCL Column J
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -685,6 +719,139 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Breached Cases: {str(e)}")
 
+def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
+
+    # Process QA Reviews - CSATs sheet
+    # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
+
+    try:
+        # Read the "CSATs" sheet from QA Review file
+        csats_df = pd.read_excel(qa_review_file, sheet_name="CSATs")
+
+        # Find required columns in CSATs sheet
+        def find_column_containing(df, search_terms):
+            """Find column that contains any of the search terms (case-insensitive)"""
+            for col in df.columns:
+                col_lower = str(col).strip().lower()
+                for term in search_terms:
+                    # Check if the term is in the column name (handles both bracket and non-bracket formats)
+                    if f"[{term.strip().lower()}]" in col_lower or term.strip().lower() in col_lower:
+                        return col
+            raise ValueError(f"Missing required column containing: {search_terms}")
+
+        # Column mapping for CSATs:
+        country_code_col = find_column_containing(csats_df, ["subject person country code"])  # Column G -> QCL Column D
+        agent_col = find_column_containing(csats_df, ["agent"])  # Column I -> QCL Column E
+        csat_id_col = find_column_containing(csats_df, ["csat id"])  # Column B -> QCL Column F
+        case_number_col = find_column_containing(csats_df, ["case number"])  # Column D -> QCL Column G
+        topic_category_col = find_column_containing(csats_df, ["topic category"])  # Column P -> QCL Column H
+        csat_score_col = find_column_containing(csats_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
+        comments_col = find_column_containing(csats_df, ["comments"])  # Column F -> QCL Column K
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build name to member mapping (CSATs uses full name instead of corpkey)
+        name_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            # Extract the name part (before " - ") for matching
+            if " - " in member_name_raw:
+                name_part = member_name_raw.split(" - ")[0].strip()
+            else:
+                name_part = member_name_raw
+
+            name_to_member[name_part.lower()] = {
+                'name': member_name_raw,
+                'team_name': team_name,  # Store the Team column name for display
+                'tenure': tenure,
+                'cases': []
+            }
+
+        # Build dictionary of cases per agent name
+        for _, row in csats_df.iterrows():
+            agent_name = str(row[agent_col]).strip()
+            if agent_name and agent_name.lower() != 'nan':
+                # Try to match the agent name
+                agent_lower = agent_name.lower()
+                if agent_lower in name_to_member:
+                    name_to_member[agent_lower]['cases'].append(row)
+
+        # Access the CSATs sheet
+        if "CSATs" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'CSATs' sheet")
+
+        ws = wb["CSATs"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        matched_agents = 0
+        total_cases_written = 0
+        unmatched_agents = []
+
+        # Process each member with cases
+        for agent_name_lower, member_data in name_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            matched_agents += 1
+            tenure = member_data['tenure']
+            member_name = member_data['name']
+
+            print(f"Agent: {member_name} | Tenure: {tenure} | Total Cases: {len(cases)}")
+
+            # Write ALL cases to QCL - CSATs sheet (no sampling)
+            for case in cases:
+                ws[f"B{current_row}"].value = control_no
+                ws[f"D{current_row}"].value = format_location(case[country_code_col])
+                ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
+                ws[f"F{current_row}"].value = case[csat_id_col]  # CSAT ID
+                ws[f"G{current_row}"].value = case[case_number_col]  # Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[topic_category_col]  # HR Service
+                ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
+                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
+                ws[f"K{current_row}"].value = case[comments_col]  # Comment
+                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        # Find unmatched agents (members with no cases)
+        for agent_name_lower, member_data in name_to_member.items():
+            if len(member_data['cases']) == 0:
+                unmatched_agents.append(member_data['name'])
+
+        return control_no, total_cases_written, matched_agents, unmatched_agents
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - CSATs: {str(e)}")
+
 def process_files():
     raw_file = qa_checks_entry.get()
     qa_review_file = qa_review_entry.get()
@@ -712,6 +879,7 @@ def process_files():
         qa_checks_stats = None
         qa_reviews_reopened_stats = None
         qa_reviews_breached_stats = None
+        qa_reviews_csats_stats = None
 
         # ========== PROCESS QA CHECKS ==========
         if raw_file:
@@ -890,6 +1058,35 @@ def process_files():
                 print(f"Warning: Could not process QA Reviews - Breached Cases - {str(e)}")
                 qa_reviews_breached_stats = None
 
+        # ========== PROCESS QA REVIEWS - CSATS ==========
+        if qa_review_file:
+            print("\n========== PROCESSING QA REVIEWS - CSATS ==========")
+
+            try:
+                control_no_start = 1  # Start from 1 for CSATs
+                _, cases_written, matched, unmatched_list = process_qa_reviews_csats(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start
+                )
+
+                print(f"\n=== QA REVIEWS CSATS FINAL RESULTS ===")
+                print(f"Matched agents: {matched}")
+                print(f"Total cases written: {cases_written}")
+                print(f"Unmatched agents: {len(unmatched_list)}")
+                if unmatched_list[:5]:
+                    print(f"Sample unmatched: {unmatched_list[:5]}")
+
+                qa_reviews_csats_stats = {
+                    'matched': matched,
+                    'cases': cases_written,
+                    'unmatched': len(unmatched_list)
+                }
+            except Exception as e:
+                print(f"Warning: Could not process QA Reviews - CSATs - {str(e)}")
+                qa_reviews_csats_stats = None
+
         # Save workbook
         wb.save(output_path)
         wb.close()
@@ -914,7 +1111,13 @@ def process_files():
             success_msg += "=== QA REVIEWS (Breached Cases) ===\n"
             success_msg += f"Matched agents: {qa_reviews_breached_stats['matched']}\n"
             success_msg += f"Cases written: {qa_reviews_breached_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_reviews_breached_stats['unmatched']}"
+            success_msg += f"Unmatched agents: {qa_reviews_breached_stats['unmatched']}\n\n"
+
+        if qa_reviews_csats_stats:
+            success_msg += "=== QA REVIEWS (CSATs) ===\n"
+            success_msg += f"Matched agents: {qa_reviews_csats_stats['matched']}\n"
+            success_msg += f"Cases written: {qa_reviews_csats_stats['cases']}\n"
+            success_msg += f"Unmatched agents: {qa_reviews_csats_stats['unmatched']}"
 
         messagebox.showinfo("Success", success_msg)
 
