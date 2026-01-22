@@ -740,13 +740,14 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
             raise ValueError(f"Missing required column containing: {search_terms}")
 
         # Column mapping for CSATs:
+        team_col = find_column_containing(csats_df, ["team"])  # Column H -> QCL Column C
         country_code_col = find_column_containing(csats_df, ["subject person country code"])  # Column G -> QCL Column D
         agent_col = find_column_containing(csats_df, ["agent"])  # Column I (full name with corpkey) -> QCL Column E
         csat_id_col = find_column_containing(csats_df, ["csat id"])  # Column B -> QCL Column F
         case_number_col = find_column_containing(csats_df, ["case number"])  # Column D -> QCL Column G
-        topic_category_col = find_column_containing(csats_df, ["topic category"])  # Column P -> QCL Column H
+        hrservice_col = find_column_containing(csats_df, ["hr service"])  # Column Q -> QCL Column H
         csat_score_col = find_column_containing(csats_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
-        comments_col = find_column_containing(csats_df, ["comments"])  # Column F -> QCL Column K
+        comments_col = find_column_containing(csats_df, ["commments"])  # Column F -> QCL Column K [RENZO NOTE: FOR SOME REASON, COLUMN F HAS 3 Ms IN COMMENTS IN THE RAW FILE. THIS IS NOT A TYPO ??????]
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -796,10 +797,10 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
                     corpkey_to_member[corpkey]['cases'].append(row)
 
         # Access the CSATs sheet
-        if "CSATs" not in wb.sheetnames:
-            raise ValueError("QCL template does not contain 'CSATs' sheet")
+        if "CSAT" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'CSAT' sheet")
 
-        ws = wb["CSATs"]
+        ws = wb["CSAT"]
         current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
         control_no = control_no_start
 
@@ -825,11 +826,12 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
             # Write ALL cases to QCL - CSATs sheet (no sampling)
             for case in cases:
                 ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = format_assignment_group(case[team_col]) # Team
                 ws[f"D{current_row}"].value = format_location(case[country_code_col])
                 ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
                 ws[f"F{current_row}"].value = case[csat_id_col]  # CSAT ID
                 ws[f"G{current_row}"].value = case[case_number_col]  # Reference Number (HR Case No.)
-                ws[f"H{current_row}"].value = case[topic_category_col]  # HR Service
+                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
                 ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
                 ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
                 ws[f"K{current_row}"].value = case[comments_col]  # Comment
