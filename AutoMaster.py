@@ -110,7 +110,7 @@ COUNTRY_LOCATION_MAP = {
             "IE",
             "KBK","KCC", "KCM", "KFL", "KFR", "KGD", "KMH", "KNF", "KQB", "KQB", "KSY", "KXS", "KZK", "KZR", "KNZ", "KBE", "KLQ", "KQT",
             "LZ",
-            "NL", "RO",
+            "NL",
             "RBG", 
             "WP","WBM",
             "Guest NL - Guest.NL",
@@ -137,7 +137,7 @@ COUNTRY_LOCATION_MAP = {
     "Romania": {
         "formatted_prefixes": ["PH1_RO"],
         "arbitrary_codes": [
-            "PH", "Guest PH - Guest.PH"
+            "PH", "Guest PH - Guest.PH", "RO",
         ]
     },
     "Russian Federation": {
@@ -283,7 +283,7 @@ def format_assignment_group(group):
     if "compensation" in group or "benefits" in group:
         return "Performance & Rewards"
     elif "expenses" in group:
-        return "Expense"
+        return "Expenses"
     elif "hcm" in group:
         return "Human Capital Management"
     elif "organizational management" in group:
@@ -669,7 +669,7 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                 ws[f"F{current_row}"].value = case[number_col]
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
-                ws[f"I{current_row}"].value = case[breach_reason_col]  # Column I for Breach Reason
+                ws[f"J{current_row}"].value = case[breach_reason_col]  # Column J for Breach Reason
 
                 control_no += 1
                 current_row += 1
