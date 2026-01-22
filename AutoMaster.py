@@ -54,7 +54,7 @@ COUNTRY_LOCATION_MAP = {
     "Germany": {
         "formatted_prefixes": ["PH2_DE"],
         "arbitrary_codes": [
-            "Germany"
+            "Germany", "Guest DE - Guest.DE"
         ]
     },
     "Hong Kong": {
@@ -125,7 +125,7 @@ COUNTRY_LOCATION_MAP = {
     "Poland": {
         "formatted_prefixes": ["PH1_PL"],
         "arbitrary_codes": [
-            "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+            "PL", "PL Bank", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
         ]
     },
     "Portugal": {
@@ -201,7 +201,7 @@ COUNTRY_LOCATION_MAP = {
     "United Kingdom": {
         "formatted_prefixes": ["PH2_GB"],
         "arbitrary_codes": [
-            "Guest UK - Guest.UK"
+            "Guest UK - Guest.UK", "United Kingdom"
         ]
     },
     "United States": {
