@@ -741,7 +741,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
 
         # Column mapping for CSATs:
         country_code_col = find_column_containing(csats_df, ["subject person country code"])  # Column G -> QCL Column D
-        agent_col = find_column_containing(csats_df, ["agent"])  # Column I -> QCL Column E
+        agent_col = find_column_containing(csats_df, ["agent"])  # Column I (full name with corpkey) -> QCL Column E
         csat_id_col = find_column_containing(csats_df, ["csat id"])  # Column B -> QCL Column F
         case_number_col = find_column_containing(csats_df, ["case number"])  # Column D -> QCL Column G
         topic_category_col = find_column_containing(csats_df, ["topic category"])  # Column P -> QCL Column H
@@ -767,8 +767,8 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
         team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
         tenure_col = find_column(members_df, ["Tenure"])
 
-        # Build name to member mapping (CSATs uses full name instead of corpkey)
-        name_to_member = {}
+        # Build corpkey to member mapping (same as QA Checks)
+        corpkey_to_member = {}
         for _, member in members_df.iterrows():
             member_name_raw = str(member[member_name_col]).strip()
             team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
@@ -777,27 +777,23 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
             if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
                 continue
 
-            # Extract the name part (before " - ") for matching
-            if " - " in member_name_raw:
-                name_part = member_name_raw.split(" - ")[0].strip()
-            else:
-                name_part = member_name_raw
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'team_name': team_name,  # Store the Team column name for display
+                    'tenure': tenure,
+                    'cases': []
+                }
 
-            name_to_member[name_part.lower()] = {
-                'name': member_name_raw,
-                'team_name': team_name,  # Store the Team column name for display
-                'tenure': tenure,
-                'cases': []
-            }
-
-        # Build dictionary of cases per agent name
+        # Build dictionary of cases per corpkey (same as QA Checks)
         for _, row in csats_df.iterrows():
             agent_name = str(row[agent_col]).strip()
             if agent_name and agent_name.lower() != 'nan':
-                # Try to match the agent name
-                agent_lower = agent_name.lower()
-                if agent_lower in name_to_member:
-                    name_to_member[agent_lower]['cases'].append(row)
+                # Extract corpkey from agent field (same as QA Checks with "Assigned to")
+                corpkey = extract_corpkey_from_name(agent_name)
+                if corpkey and corpkey in corpkey_to_member:
+                    corpkey_to_member[corpkey]['cases'].append(row)
 
         # Access the CSATs sheet
         if "CSATs" not in wb.sheetnames:
@@ -813,17 +809,18 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
         unmatched_agents = []
 
         # Process each member with cases
-        for agent_name_lower, member_data in name_to_member.items():
+        for corpkey, member_data in corpkey_to_member.items():
             cases = member_data['cases']
 
             if len(cases) == 0:
+                unmatched_agents.append(member_data['name'])
                 continue
 
             matched_agents += 1
             tenure = member_data['tenure']
             member_name = member_data['name']
 
-            print(f"Agent: {member_name} | Tenure: {tenure} | Total Cases: {len(cases)}")
+            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)}")
 
             # Write ALL cases to QCL - CSATs sheet (no sampling)
             for case in cases:
@@ -843,9 +840,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
                 total_cases_written += 1
 
         # Find unmatched agents (members with no cases)
-        for agent_name_lower, member_data in name_to_member.items():
-            if len(member_data['cases']) == 0:
-                unmatched_agents.append(member_data['name'])
+        # Already tracked above in the loop
 
         return control_no, total_cases_written, matched_agents, unmatched_agents
 
