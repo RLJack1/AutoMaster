@@ -560,6 +560,131 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Reopened Cases: {str(e)}")
 
+def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start):
+
+    # Process QA Reviews - Breached Cases sheet
+    # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
+
+    try:
+        # Read the "Breached Cases" sheet from QA Review file
+        breached_df = pd.read_excel(qa_review_file, sheet_name="Breached Cases")
+
+        # Find required columns in Breached Cases sheet
+        def find_column_containing(df, search_terms):
+            """Find column that contains any of the search terms (case-insensitive)"""
+            for col in df.columns:
+                col_lower = str(col).strip().lower()
+                for term in search_terms:
+                    # Check if the term is in the column name (handles both bracket and non-bracket formats)
+                    if f"[{term.strip().lower()}]" in col_lower or term.strip().lower() in col_lower:
+                        return col
+            raise ValueError(f"Missing required column containing: {search_terms}")
+
+        # Column mapping for Breached Cases:
+        assignment_group_col = find_column_containing(breached_df, ["assignment group"])  # Column N -> QCL Column B
+        country_code_col = find_column_containing(breached_df, ["country code"])  # Column O -> QCL Column C
+        user_id_col = find_column_containing(breached_df, ["user id"])  # Column M (corp key only) -> QCL Column D
+        number_col = find_column_containing(breached_df, ["number"])  # Column C -> QCL Column E
+        hr_service_col = find_column_containing(breached_df, ["hr service"])  # Column D -> QCL Column F
+        resolution_type_col = find_column_containing(breached_df, ["resolution type"])  # Column E -> QCL Column G
+        breach_reason_col = find_column_containing(breached_df, ["sla breach reason"])  # Column AA -> QCL Column I
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build corpkey to member mapping
+        corpkey_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'team_name': team_name,  # Store the Team column name for display
+                    'tenure': tenure,
+                    'cases': []
+                }
+
+        # Build dictionary of cases per corpkey
+        for _, row in breached_df.iterrows():
+            user_id = str(row[user_id_col]).strip()
+            if user_id and user_id.lower() != 'nan':
+                if user_id in corpkey_to_member:
+                    corpkey_to_member[user_id]['cases'].append(row)
+
+        # Access the Breached Cases sheet
+        if "Breached Cases" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'Breached Cases' sheet")
+
+        ws = wb["Breached Cases"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        matched_agents = 0
+        total_cases_written = 0
+        unmatched_agents = []
+
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            matched_agents += 1
+            tenure = member_data['tenure']
+            member_name = member_data['name']
+
+            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)}")
+
+            # Write ALL cases to QCL - Breached Cases sheet (no sampling)
+            for case in cases:
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+                ws[f"D{current_row}"].value = format_location(case[country_code_col])
+                ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
+                ws[f"F{current_row}"].value = case[number_col]
+                ws[f"G{current_row}"].value = case[hr_service_col]
+                ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
+                ws[f"I{current_row}"].value = case[breach_reason_col]  # Column I for Breach Reason
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        # Find unmatched agents (members with no cases)
+        for corpkey, member_data in corpkey_to_member.items():
+            if len(member_data['cases']) == 0:
+                unmatched_agents.append(member_data['name'])
+
+        return control_no, total_cases_written, matched_agents, unmatched_agents
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - Breached Cases: {str(e)}")
+
 def process_files():
     raw_file = qa_checks_entry.get()
     qa_review_file = qa_review_entry.get()
@@ -585,7 +710,8 @@ def process_files():
 
         # Initialize statistics
         qa_checks_stats = None
-        qa_reviews_stats = None
+        qa_reviews_reopened_stats = None
+        qa_reviews_breached_stats = None
 
         # ========== PROCESS QA CHECKS ==========
         if raw_file:
@@ -719,21 +845,50 @@ def process_files():
                     control_no_start
                 )
 
-                print(f"\n=== QA REVIEWS FINAL RESULTS ===")
+                print(f"\n=== QA REVIEWS REOPENED CASES FINAL RESULTS ===")
                 print(f"Matched agents: {matched}")
                 print(f"Total cases written: {cases_written}")
                 print(f"Unmatched agents: {len(unmatched_list)}")
                 if unmatched_list[:5]:
                     print(f"Sample unmatched: {unmatched_list[:5]}")
 
-                qa_reviews_stats = {
+                qa_reviews_reopened_stats = {
                     'matched': matched,
                     'cases': cases_written,
                     'unmatched': len(unmatched_list)
                 }
             except Exception as e:
-                print(f"Warning: Could not process QA Reviews - {str(e)}")
-                qa_reviews_stats = None
+                print(f"Warning: Could not process QA Reviews - Reopened Cases - {str(e)}")
+                qa_reviews_reopened_stats = None
+
+        # ========== PROCESS QA REVIEWS - BREACHED CASES ==========
+        if qa_review_file:
+            print("\n========== PROCESSING QA REVIEWS - BREACHED CASES ==========")
+
+            try:
+                control_no_start = 1  # Start from 1 for Breached Cases
+                _, cases_written, matched, unmatched_list = process_qa_reviews_breached_cases(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start
+                )
+
+                print(f"\n=== QA REVIEWS BREACHED CASES FINAL RESULTS ===")
+                print(f"Matched agents: {matched}")
+                print(f"Total cases written: {cases_written}")
+                print(f"Unmatched agents: {len(unmatched_list)}")
+                if unmatched_list[:5]:
+                    print(f"Sample unmatched: {unmatched_list[:5]}")
+
+                qa_reviews_breached_stats = {
+                    'matched': matched,
+                    'cases': cases_written,
+                    'unmatched': len(unmatched_list)
+                }
+            except Exception as e:
+                print(f"Warning: Could not process QA Reviews - Breached Cases - {str(e)}")
+                qa_reviews_breached_stats = None
 
         # Save workbook
         wb.save(output_path)
@@ -749,11 +904,17 @@ def process_files():
             success_msg += f"Cases written: {qa_checks_stats['cases']}\n"
             success_msg += f"Unmatched agents: {qa_checks_stats['unmatched']}\n\n"
 
-        if qa_reviews_stats:
+        if qa_reviews_reopened_stats:
             success_msg += "=== QA REVIEWS (Reopened Cases) ===\n"
-            success_msg += f"Matched agents: {qa_reviews_stats['matched']}\n"
-            success_msg += f"Cases written: {qa_reviews_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_reviews_stats['unmatched']}"
+            success_msg += f"Matched agents: {qa_reviews_reopened_stats['matched']}\n"
+            success_msg += f"Cases written: {qa_reviews_reopened_stats['cases']}\n"
+            success_msg += f"Unmatched agents: {qa_reviews_reopened_stats['unmatched']}\n\n"
+
+        if qa_reviews_breached_stats:
+            success_msg += "=== QA REVIEWS (Breached Cases) ===\n"
+            success_msg += f"Matched agents: {qa_reviews_breached_stats['matched']}\n"
+            success_msg += f"Cases written: {qa_reviews_breached_stats['cases']}\n"
+            success_msg += f"Unmatched agents: {qa_reviews_breached_stats['unmatched']}"
 
         messagebox.showinfo("Success", success_msg)
 
