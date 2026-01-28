@@ -524,11 +524,12 @@ def parse_circle_selection(circle_selection):
 
 # ---------------- MAIN PROCESS ---------------- #
 
-def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None):
+def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None):
 
     # Process QA Reviews - Reopened Cases sheet
     # selected_circle: None for all circles, or 1-6 for specific circle
-    # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
 
     try:
         # Read the "Reopened Cases" sheet from QA Review file
@@ -592,15 +593,18 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                     'cases': []
                 }
 
-        # Build dictionary of cases per corpkey with circle filtering
-        for _, row in reopened_df.iterrows():
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey with circle filtering (with row index)
+        for row_idx, row in reopened_df.iterrows():
             user_id = str(row[user_id_col]).strip()
             if user_id and user_id.lower() != 'nan':
                 # Check if case matches the selected circle filter
                 case_circle = get_circle_from_assignment_group(row[assignment_group_col])
                 if selected_circle is None or case_circle == selected_circle:
                     if user_id in corpkey_to_member:
-                        corpkey_to_member[user_id]['cases'].append(row)
+                        corpkey_to_member[user_id]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
         # Access the Reopened Cases sheet
         if "Reopened Cases" not in wb.sheetnames:
@@ -611,9 +615,10 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         control_no = control_no_start
 
         # Track statistics
-        matched_agents = 0
         total_cases_written = 0
-        unmatched_agents = []
+
+        if log_func:
+            log_func(f"=== PROCESSING REOPENED CASES ===")
 
         # Process each member with cases
         for corpkey, member_data in corpkey_to_member.items():
@@ -622,41 +627,46 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
             if len(cases) == 0:
                 continue
 
-            matched_agents += 1
-            tenure = member_data['tenure']
-            member_name = member_data['name']
-
-            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)}")
-
             # Write ALL cases to QCL - Reopened Cases sheet (no sampling)
-            for case in cases:
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[number_col]
+                location = format_location(case[country_code_col])
+
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-                ws[f"D{current_row}"].value = format_location(case[country_code_col])
+                ws[f"D{current_row}"].value = location
                 ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
-                ws[f"F{current_row}"].value = case[number_col]
+                ws[f"F{current_row}"].value = case_number
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
+
+                # Log to console
+                if log_func:
+                    if location and location.strip():
+                        log_func(f"Reopened Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Reopened Cases")
+                    else:
+                        log_func(f"Reopened Cases {control_no}: Case {case_number} has an unprocessed/blank location.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        # Find unmatched agents (members with no cases)
-        for corpkey, member_data in corpkey_to_member.items():
-            if len(member_data['cases']) == 0:
-                unmatched_agents.append(member_data['name'])
+        if log_func:
+            log_func(f"Reopened Cases completed: {total_cases_written} cases written.\n")
 
-        return control_no, total_cases_written, matched_agents, unmatched_agents
+        return control_no, total_cases_written
 
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Reopened Cases: {str(e)}")
 
-def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None):
+def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None):
 
     # Process QA Reviews - Breached Cases sheet
     # selected_circle: None for all circles, or 1-6 for specific circle
-    # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
 
     try:
         # Read the "Breached Cases" sheet from QA Review file
@@ -720,15 +730,18 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                     'cases': []
                 }
 
-        # Build dictionary of cases per corpkey with circle filtering
-        for _, row in breached_df.iterrows():
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey with circle filtering (with row index)
+        for row_idx, row in breached_df.iterrows():
             user_id = str(row[user_id_col]).strip()
             if user_id and user_id.lower() != 'nan':
                 # Check if case matches the selected circle filter
                 case_circle = get_circle_from_assignment_group(row[assignment_group_col])
                 if selected_circle is None or case_circle == selected_circle:
                     if user_id in corpkey_to_member:
-                        corpkey_to_member[user_id]['cases'].append(row)
+                        corpkey_to_member[user_id]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
         # Access the Breached Cases sheet
         if "Breached Cases" not in wb.sheetnames:
@@ -739,9 +752,10 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
         control_no = control_no_start
 
         # Track statistics
-        matched_agents = 0
         total_cases_written = 0
-        unmatched_agents = []
+
+        if log_func:
+            log_func(f"=== PROCESSING BREACHED CASES ===")
 
         # Process each member with cases
         for corpkey, member_data in corpkey_to_member.items():
@@ -750,42 +764,47 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
             if len(cases) == 0:
                 continue
 
-            matched_agents += 1
-            tenure = member_data['tenure']
-            member_name = member_data['name']
-
-            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)}")
-
             # Write ALL cases to QCL - Breached Cases sheet (no sampling)
-            for case in cases:
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[number_col]
+                location = format_location(case[country_code_col])
+
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-                ws[f"D{current_row}"].value = format_location(case[country_code_col])
+                ws[f"D{current_row}"].value = location
                 ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
-                ws[f"F{current_row}"].value = case[number_col]
+                ws[f"F{current_row}"].value = case_number
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
                 ws[f"J{current_row}"].value = case[breach_reason_col]  # Column J for Breach Reason
+
+                # Log to console
+                if log_func:
+                    if location and location.strip():
+                        log_func(f"Breached Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Breached Cases")
+                    else:
+                        log_func(f"Breached Cases {control_no}: Case {case_number} has an unprocessed/blank location.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        # Find unmatched agents (members with no cases)
-        for corpkey, member_data in corpkey_to_member.items():
-            if len(member_data['cases']) == 0:
-                unmatched_agents.append(member_data['name'])
+        if log_func:
+            log_func(f"Breached Cases completed: {total_cases_written} cases written.\n")
 
-        return control_no, total_cases_written, matched_agents, unmatched_agents
+        return control_no, total_cases_written
 
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Breached Cases: {str(e)}")
 
-def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, selected_circle=None):
+def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None):
 
     # Process QA Reviews - CSATs sheet
     # selected_circle: None for all circles, or 1-6 for specific circle
-    # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
 
     try:
         # Read the "CSATs" sheet from QA Review file
@@ -850,8 +869,11 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                     'cases': []
                 }
 
-        # Build dictionary of cases per corpkey with circle filtering
-        for _, row in csats_df.iterrows():
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey with circle filtering (with row index)
+        for row_idx, row in csats_df.iterrows():
             agent_name = str(row[agent_col]).strip()
             if agent_name and agent_name.lower() != 'nan':
                 # Check if case matches the selected circle filter
@@ -860,7 +882,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                     # Extract corpkey from agent field (same as QA Checks with "Assigned to")
                     corpkey = extract_corpkey_from_name(agent_name)
                     if corpkey and corpkey in corpkey_to_member:
-                        corpkey_to_member[corpkey]['cases'].append(row)
+                        corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
         # Access the CSATs sheet
         if "CSAT" not in wb.sheetnames:
@@ -871,46 +893,53 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
         control_no = control_no_start
 
         # Track statistics
-        matched_agents = 0
         total_cases_written = 0
-        unmatched_agents = []
+
+        if log_func:
+            log_func(f"=== PROCESSING CSAT ===")
 
         # Process each member with cases
         for corpkey, member_data in corpkey_to_member.items():
             cases = member_data['cases']
 
             if len(cases) == 0:
-                unmatched_agents.append(member_data['name'])
                 continue
 
-            matched_agents += 1
-            tenure = member_data['tenure']
-            member_name = member_data['name']
-
-            print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)}")
-
             # Write ALL cases to QCL - CSATs sheet (no sampling)
-            for case in cases:
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[case_number_col]
+                csat_id = case[csat_id_col]
+                location = format_location(case[country_code_col])
+
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col]) # Team
-                ws[f"D{current_row}"].value = format_location(case[country_code_col])
+                ws[f"D{current_row}"].value = location
                 ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
-                ws[f"F{current_row}"].value = case[csat_id_col]  # CSAT ID
-                ws[f"G{current_row}"].value = case[case_number_col]  # Reference Number (HR Case No.)
+                ws[f"F{current_row}"].value = csat_id  # CSAT ID
+                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
                 ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
                 ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
                 ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
                 ws[f"K{current_row}"].value = case[comments_col]  # Comment
                 ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
 
+                # Log to console
+                if log_func:
+                    if location and location.strip():
+                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSATs")
+                    else:
+                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unprocessed/blank location.")
+
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        # Find unmatched agents (members with no cases)
-        # Already tracked above in the loop
+        if log_func:
+            log_func(f"CSAT completed: {total_cases_written} cases written.\n")
 
-        return control_no, total_cases_written, matched_agents, unmatched_agents
+        return control_no, total_cases_written
 
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - CSATs: {str(e)}")
@@ -929,7 +958,10 @@ def process_files():
     # Parse the selected circle
     selected_circle = parse_circle_selection(selected_circle_text)
     circle_filter_msg = f"Circle {selected_circle}" if selected_circle else "All Circles"
-    print(f"\n========== PROCESSING WITH FILTER: {circle_filter_msg} ==========")
+
+    # Clear console and start logging
+    clear_console()
+    log_to_console(f"========== PROCESSING WITH FILTER: {circle_filter_msg} ==========")
 
     try:
         # Copy template and preserve all features first
@@ -1001,8 +1033,11 @@ def process_files():
                         'cases': []
                     }
 
-            # Build dictionary of cases per corpkey
-            for _, row in raw_df.iterrows():
+            # Get raw file name for logging
+            raw_file_name = os.path.basename(raw_file)
+
+            # Build dictionary of cases per corpkey (with row index for logging)
+            for row_idx, row in raw_df.iterrows():
                 assigned_to = str(row[assigned_col]).strip()
                 if assigned_to and assigned_to.lower() != 'nan':
                     # Check if case matches the selected circle filter
@@ -1011,155 +1046,119 @@ def process_files():
                         # Extract corpkey from assigned_to field
                         corpkey = extract_corpkey_from_name(assigned_to)
                         if corpkey and corpkey in corpkey_to_member:
-                            corpkey_to_member[corpkey]['cases'].append(row)
+                            # Store row with its index (add 2 for Excel row: 1 for header, 1 for 0-index)
+                            corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
-            # DEBUGGING: Print matching statistics
-            print(f"\n=== MATCHING STATISTICS ===")
-            print(f"Total cases in raw file: {len(raw_df)}")
-            print(f"Total agents in member list: {len(members_df)}")
-            print(f"Agents with corp keys: {len(corpkey_to_member)}")
+            log_to_console(f"=== PROCESSING QA CHECKS ===")
 
             ws = wb["QA Checks"]
             current_row = find_qcl_start_row(ws)
             control_no = 1
 
             # Track processing statistics
-            matched_agents = 0
             total_cases_written = 0
-            unmatched_agents = []
 
             # Process each member with cases
             for corpkey, member_data in corpkey_to_member.items():
                 cases = member_data['cases']
 
                 if len(cases) == 0:
-                    unmatched_agents.append(member_data['name'])
                     continue
 
-                matched_agents += 1
                 tenure = member_data['tenure']
-                member_name = member_data['name']
 
                 # Calculate sample size based on tenure
                 sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
                 sampled_cases = random.sample(cases, min(sample_size, len(cases)))
 
-                print(f"Agent: {member_name} | Corp Key: {corpkey} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
-
                 # Write sampled cases to QCL
-                for case in sampled_cases:
+                for case_data in sampled_cases:
+                    case = case_data['row']
+                    raw_row_num = case_data['raw_row_num']
+                    case_number = case[case_id_col]
+                    location = get_case_location(case[location_col], case[opened_for_col])
+
                     ws[f"B{current_row}"].value = control_no
                     ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-                    ws[f"D{current_row}"].value = get_case_location(case[location_col], case[opened_for_col])
+                    ws[f"D{current_row}"].value = location
                     ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
-                    ws[f"F{current_row}"].value = case[case_id_col]
+                    ws[f"F{current_row}"].value = case_number
                     ws[f"G{current_row}"].value = case[service_col]
+
+                    # Log to console
+                    if location and location.strip():
+                        log_to_console(f"QA Checks {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}")
+                    else:
+                        log_to_console(f"QA Checks {control_no}: Case {case_number} has an unprocessed/blank location.")
+
                     control_no += 1
                     current_row += 1
                     total_cases_written += 1
 
-            # Print final statistics
-            print(f"\n=== QA CHECKS FINAL RESULTS ===")
-            print(f"Matched agents: {matched_agents}")
-            print(f"Total cases written: {total_cases_written}")
-            print(f"Unmatched agents: {len(unmatched_agents)}")
-            if unmatched_agents[:5]:  # Show first 5 unmatched
-                print(f"Sample unmatched: {unmatched_agents[:5]}")
+            log_to_console(f"QA Checks completed: {total_cases_written} cases written.\n")
 
             qa_checks_stats = {
-                'matched': matched_agents,
-                'cases': total_cases_written,
-                'unmatched': len(unmatched_agents)
+                'cases': total_cases_written
             }
 
         # ========== PROCESS QA REVIEWS - REOPENED CASES ==========
         if qa_review_file:
-            print("\n========== PROCESSING QA REVIEWS - REOPENED CASES ==========")
-
             try:
                 control_no_start = 1  # Start from 1 for QA Reviews
-                _, cases_written, matched, unmatched_list = process_qa_reviews_reopened_cases(
+                _, cases_written = process_qa_reviews_reopened_cases(
                     qa_review_file,
                     member_file,
                     wb,
                     control_no_start,
-                    selected_circle
+                    selected_circle,
+                    log_to_console
                 )
 
-                print(f"\n=== QA REVIEWS REOPENED CASES FINAL RESULTS ===")
-                print(f"Matched agents: {matched}")
-                print(f"Total cases written: {cases_written}")
-                print(f"Unmatched agents: {len(unmatched_list)}")
-                if unmatched_list[:5]:
-                    print(f"Sample unmatched: {unmatched_list[:5]}")
-
                 qa_reviews_reopened_stats = {
-                    'matched': matched,
-                    'cases': cases_written,
-                    'unmatched': len(unmatched_list)
+                    'cases': cases_written
                 }
             except Exception as e:
-                print(f"Warning: Could not process QA Reviews - Reopened Cases - {str(e)}")
+                log_to_console(f"Warning: Could not process QA Reviews - Reopened Cases - {str(e)}")
                 qa_reviews_reopened_stats = None
 
         # ========== PROCESS QA REVIEWS - BREACHED CASES ==========
         if qa_review_file:
-            print("\n========== PROCESSING QA REVIEWS - BREACHED CASES ==========")
-
             try:
                 control_no_start = 1  # Start from 1 for Breached Cases
-                _, cases_written, matched, unmatched_list = process_qa_reviews_breached_cases(
+                _, cases_written = process_qa_reviews_breached_cases(
                     qa_review_file,
                     member_file,
                     wb,
                     control_no_start,
-                    selected_circle
+                    selected_circle,
+                    log_to_console
                 )
 
-                print(f"\n=== QA REVIEWS BREACHED CASES FINAL RESULTS ===")
-                print(f"Matched agents: {matched}")
-                print(f"Total cases written: {cases_written}")
-                print(f"Unmatched agents: {len(unmatched_list)}")
-                if unmatched_list[:5]:
-                    print(f"Sample unmatched: {unmatched_list[:5]}")
-
                 qa_reviews_breached_stats = {
-                    'matched': matched,
-                    'cases': cases_written,
-                    'unmatched': len(unmatched_list)
+                    'cases': cases_written
                 }
             except Exception as e:
-                print(f"Warning: Could not process QA Reviews - Breached Cases - {str(e)}")
+                log_to_console(f"Warning: Could not process QA Reviews - Breached Cases - {str(e)}")
                 qa_reviews_breached_stats = None
 
         # ========== PROCESS QA REVIEWS - CSATS ==========
         if qa_review_file:
-            print("\n========== PROCESSING QA REVIEWS - CSATS ==========")
-
             try:
                 control_no_start = 1  # Start from 1 for CSATs
-                _, cases_written, matched, unmatched_list = process_qa_reviews_csats(
+                _, cases_written = process_qa_reviews_csats(
                     qa_review_file,
                     member_file,
                     wb,
                     control_no_start,
-                    selected_circle
+                    selected_circle,
+                    log_to_console
                 )
 
-                print(f"\n=== QA REVIEWS CSATS FINAL RESULTS ===")
-                print(f"Matched agents: {matched}")
-                print(f"Total cases written: {cases_written}")
-                print(f"Unmatched agents: {len(unmatched_list)}")
-                if unmatched_list[:5]:
-                    print(f"Sample unmatched: {unmatched_list[:5]}")
-
                 qa_reviews_csats_stats = {
-                    'matched': matched,
-                    'cases': cases_written,
-                    'unmatched': len(unmatched_list)
+                    'cases': cases_written
                 }
             except Exception as e:
-                print(f"Warning: Could not process QA Reviews - CSATs - {str(e)}")
+                log_to_console(f"Warning: Could not process QA Reviews - CSATs - {str(e)}")
                 qa_reviews_csats_stats = None
 
         # Save workbook
@@ -1167,32 +1166,22 @@ def process_files():
         wb.close()
 
         # Build success message
+        log_to_console("=== PROCESSING COMPLETE ===")
+
         success_msg = "QCL generated successfully!\n\n"
         success_msg += f"Output: {output_path}\n\n"
 
         if qa_checks_stats:
-            success_msg += "=== QA CHECKS ===\n"
-            success_msg += f"Matched agents: {qa_checks_stats['matched']}\n"
-            success_msg += f"Cases written: {qa_checks_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_checks_stats['unmatched']}\n\n"
+            success_msg += f"QA Checks: {qa_checks_stats['cases']} cases written\n"
 
         if qa_reviews_reopened_stats:
-            success_msg += "=== QA REVIEWS (Reopened Cases) ===\n"
-            success_msg += f"Matched agents: {qa_reviews_reopened_stats['matched']}\n"
-            success_msg += f"Cases written: {qa_reviews_reopened_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_reviews_reopened_stats['unmatched']}\n\n"
+            success_msg += f"Reopened Cases: {qa_reviews_reopened_stats['cases']} cases written\n"
 
         if qa_reviews_breached_stats:
-            success_msg += "=== QA REVIEWS (Breached Cases) ===\n"
-            success_msg += f"Matched agents: {qa_reviews_breached_stats['matched']}\n"
-            success_msg += f"Cases written: {qa_reviews_breached_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_reviews_breached_stats['unmatched']}\n\n"
+            success_msg += f"Breached Cases: {qa_reviews_breached_stats['cases']} cases written\n"
 
         if qa_reviews_csats_stats:
-            success_msg += "=== QA REVIEWS (CSATs) ===\n"
-            success_msg += f"Matched agents: {qa_reviews_csats_stats['matched']}\n"
-            success_msg += f"Cases written: {qa_reviews_csats_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_reviews_csats_stats['unmatched']}"
+            success_msg += f"CSAT: {qa_reviews_csats_stats['cases']} cases written"
 
         messagebox.showinfo("Success", success_msg)
 
@@ -1240,22 +1229,32 @@ def on_mousewheel(event):
 
 main_canvas.bind_all("<MouseWheel>", on_mousewheel)
 
-# Logo frame
-logo_frame = tk.Frame(scrollable_frame, bg="white", height=120)
-logo_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
-logo_frame.pack_propagate(False)
+# Console frame
+console_label = tk.Label(scrollable_frame, text="Console Output", font=("Arial", 12, "bold"),
+                         bg="#BFBFBF", fg="black")
+console_label.pack(anchor=tk.W, padx=20, pady=(10, 5))
 
-# Try to load logo image, fallback to text if not found
-logo_img = load_image("logo.png", width=200, height=80)
-if logo_img:
-    logo_label = tk.Label(logo_frame, image=logo_img, bg="white")
-    logo_label.image = logo_img  # Keep a reference
-    logo_label.pack(expand=True)
-else:
-    # Fallback to text logo
-    logo_label = tk.Label(logo_frame, text="A\nM", font=("Arial", 36, "bold"), 
-                          bg="white", fg="#FF6B35")
-    logo_label.pack(expand=True)
+console_frame = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID)
+console_frame.pack(fill=tk.X, padx=20, pady=(0, 15))
+
+console_text = scrolledtext.ScrolledText(console_frame, height=10, font=("Consolas", 9),
+                                          bg="#1e1e1e", fg="#d4d4d4", wrap=tk.WORD,
+                                          state=tk.DISABLED)
+console_text.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+
+def log_to_console(message):
+    """Log a message to the console text area"""
+    console_text.config(state=tk.NORMAL)
+    console_text.insert(tk.END, message + "\n")
+    console_text.see(tk.END)  # Auto-scroll to bottom
+    console_text.config(state=tk.DISABLED)
+    console_text.update()  # Force update to show message immediately
+
+def clear_console():
+    """Clear the console text area"""
+    console_text.config(state=tk.NORMAL)
+    console_text.delete(1.0, tk.END)
+    console_text.config(state=tk.DISABLED)
 
 # Circle Selection
 circle_label = tk.Label(scrollable_frame, text="1.", font=("Arial", 14, "bold"), 
