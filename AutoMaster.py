@@ -468,11 +468,66 @@ def extract_corpkey_from_name(formatted_name):
 
     return None
 
+def get_circle_from_assignment_group(assignment_group):
+
+    # Maps assignment group to circle number (1-6)
+    # Circle 1: Human Capital Management and Org Management
+    # Circle 2: Expense, Travel, and Reporting
+    # Circle 3: Learning
+    # Circle 4: International Mobility
+    # Circle 5: Performance & Rewards
+    # Circle 6: Contact Center and Recruitment Admin
+
+    if pd.isna(assignment_group):
+        return None
+
+    group_lower = str(assignment_group).lower()
+
+    # Circle 1: HCM and Org Management
+    if "human capital management" in group_lower or "hcm" in group_lower or "org management" in group_lower or "organizational management" in group_lower:
+        return 1
+    # Circle 2: Expense, Travel, and Reporting
+    elif "expense" in group_lower or "travel" in group_lower or "reporting" in group_lower:
+        return 2
+    # Circle 3: Learning
+    elif "learning" in group_lower:
+        return 3
+    # Circle 4: International Mobility
+    elif "international mobility" in group_lower or "mobility" in group_lower:
+        return 4
+    # Circle 5: Performance & Rewards
+    elif "performance" in group_lower or "rewards" in group_lower or "compensation" in group_lower or "benefits" in group_lower:
+        return 5
+    # Circle 6: Contact Center and Recruitment Admin
+    elif "contact center" in group_lower or "people services" in group_lower or "recruitment admin" in group_lower:
+        return 6
+    else:
+        return None
+
+def parse_circle_selection(circle_selection):
+
+    # Parses the circle selection from the dropdown
+    # Returns the circle number (1-6) or None for "All Circles"
+
+    if circle_selection == "All Circles":
+        return None
+
+    # Extract circle number from strings like "Circle 1 (HCM, OM)"
+    if "Circle" in circle_selection:
+        try:
+            circle_num = int(circle_selection.split()[1])
+            return circle_num
+        except:
+            return None
+
+    return None
+
 # ---------------- MAIN PROCESS ---------------- #
 
-def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start):
+def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None):
 
     # Process QA Reviews - Reopened Cases sheet
+    # selected_circle: None for all circles, or 1-6 for specific circle
     # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
 
     try:
@@ -537,12 +592,15 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                     'cases': []
                 }
 
-        # Build dictionary of cases per corpkey
+        # Build dictionary of cases per corpkey with circle filtering
         for _, row in reopened_df.iterrows():
             user_id = str(row[user_id_col]).strip()
             if user_id and user_id.lower() != 'nan':
-                if user_id in corpkey_to_member:
-                    corpkey_to_member[user_id]['cases'].append(row)
+                # Check if case matches the selected circle filter
+                case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                if selected_circle is None or case_circle == selected_circle:
+                    if user_id in corpkey_to_member:
+                        corpkey_to_member[user_id]['cases'].append(row)
 
         # Access the Reopened Cases sheet
         if "Reopened Cases" not in wb.sheetnames:
@@ -594,9 +652,10 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Reopened Cases: {str(e)}")
 
-def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start):
+def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None):
 
     # Process QA Reviews - Breached Cases sheet
+    # selected_circle: None for all circles, or 1-6 for specific circle
     # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
 
     try:
@@ -661,12 +720,15 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                     'cases': []
                 }
 
-        # Build dictionary of cases per corpkey
+        # Build dictionary of cases per corpkey with circle filtering
         for _, row in breached_df.iterrows():
             user_id = str(row[user_id_col]).strip()
             if user_id and user_id.lower() != 'nan':
-                if user_id in corpkey_to_member:
-                    corpkey_to_member[user_id]['cases'].append(row)
+                # Check if case matches the selected circle filter
+                case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                if selected_circle is None or case_circle == selected_circle:
+                    if user_id in corpkey_to_member:
+                        corpkey_to_member[user_id]['cases'].append(row)
 
         # Access the Breached Cases sheet
         if "Breached Cases" not in wb.sheetnames:
@@ -719,9 +781,10 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Breached Cases: {str(e)}")
 
-def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
+def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, selected_circle=None):
 
     # Process QA Reviews - CSATs sheet
+    # selected_circle: None for all circles, or 1-6 for specific circle
     # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
 
     try:
@@ -740,7 +803,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
             raise ValueError(f"Missing required column containing: {search_terms}")
 
         # Column mapping for CSATs:
-        team_col = find_column_containing(csats_df, ["team"])  # Column H -> QCL Column C
+        raw_team_col = find_column_containing(csats_df, ["team"])  # Column H -> QCL Column C (assignment group for circle filtering)
         country_code_col = find_column_containing(csats_df, ["subject person country code"])  # Column G -> QCL Column D
         agent_col = find_column_containing(csats_df, ["agent"])  # Column I (full name with corpkey) -> QCL Column E
         csat_id_col = find_column_containing(csats_df, ["csat id"])  # Column B -> QCL Column F
@@ -787,14 +850,17 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
                     'cases': []
                 }
 
-        # Build dictionary of cases per corpkey (same as QA Checks)
+        # Build dictionary of cases per corpkey with circle filtering
         for _, row in csats_df.iterrows():
             agent_name = str(row[agent_col]).strip()
             if agent_name and agent_name.lower() != 'nan':
-                # Extract corpkey from agent field (same as QA Checks with "Assigned to")
-                corpkey = extract_corpkey_from_name(agent_name)
-                if corpkey and corpkey in corpkey_to_member:
-                    corpkey_to_member[corpkey]['cases'].append(row)
+                # Check if case matches the selected circle filter
+                case_circle = get_circle_from_assignment_group(row[raw_team_col])
+                if selected_circle is None or case_circle == selected_circle:
+                    # Extract corpkey from agent field (same as QA Checks with "Assigned to")
+                    corpkey = extract_corpkey_from_name(agent_name)
+                    if corpkey and corpkey in corpkey_to_member:
+                        corpkey_to_member[corpkey]['cases'].append(row)
 
         # Access the CSATs sheet
         if "CSAT" not in wb.sheetnames:
@@ -826,7 +892,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start):
             # Write ALL cases to QCL - CSATs sheet (no sampling)
             for case in cases:
                 ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[team_col]) # Team
+                ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col]) # Team
                 ws[f"D{current_row}"].value = format_location(case[country_code_col])
                 ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
                 ws[f"F{current_row}"].value = case[csat_id_col]  # CSAT ID
@@ -854,10 +920,16 @@ def process_files():
     qa_review_file = qa_review_entry.get()
     qcl_template = qcl_entry.get()
     member_file = member_entry.get()
+    selected_circle_text = circle_var.get()
 
     if not raw_file or not member_file or not qcl_template:
         messagebox.showerror("Error", "Please select all required files.")
         return
+
+    # Parse the selected circle
+    selected_circle = parse_circle_selection(selected_circle_text)
+    circle_filter_msg = f"Circle {selected_circle}" if selected_circle else "All Circles"
+    print(f"\n========== PROCESSING WITH FILTER: {circle_filter_msg} ==========")
 
     try:
         # Copy template and preserve all features first
@@ -933,10 +1005,13 @@ def process_files():
             for _, row in raw_df.iterrows():
                 assigned_to = str(row[assigned_col]).strip()
                 if assigned_to and assigned_to.lower() != 'nan':
-                    # Extract corpkey from assigned_to field
-                    corpkey = extract_corpkey_from_name(assigned_to)
-                    if corpkey and corpkey in corpkey_to_member:
-                        corpkey_to_member[corpkey]['cases'].append(row)
+                    # Check if case matches the selected circle filter
+                    case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                    if selected_circle is None or case_circle == selected_circle:
+                        # Extract corpkey from assigned_to field
+                        corpkey = extract_corpkey_from_name(assigned_to)
+                        if corpkey and corpkey in corpkey_to_member:
+                            corpkey_to_member[corpkey]['cases'].append(row)
 
             # DEBUGGING: Print matching statistics
             print(f"\n=== MATCHING STATISTICS ===")
@@ -1007,7 +1082,8 @@ def process_files():
                     qa_review_file,
                     member_file,
                     wb,
-                    control_no_start
+                    control_no_start,
+                    selected_circle
                 )
 
                 print(f"\n=== QA REVIEWS REOPENED CASES FINAL RESULTS ===")
@@ -1036,7 +1112,8 @@ def process_files():
                     qa_review_file,
                     member_file,
                     wb,
-                    control_no_start
+                    control_no_start,
+                    selected_circle
                 )
 
                 print(f"\n=== QA REVIEWS BREACHED CASES FINAL RESULTS ===")
@@ -1065,7 +1142,8 @@ def process_files():
                     qa_review_file,
                     member_file,
                     wb,
-                    control_no_start
+                    control_no_start,
+                    selected_circle
                 )
 
                 print(f"\n=== QA REVIEWS CSATS FINAL RESULTS ===")
@@ -1188,10 +1266,11 @@ circle_frame = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID, hig
                         highlightthickness=2)
 circle_frame.pack(fill=tk.X, padx=30, pady=5)
 
-circle_var = tk.StringVar(value="Circle 1 (HCM, OM)")
+circle_var = tk.StringVar(value="All Circles")
 circle_dropdown = tk.OptionMenu(
     circle_frame,
     circle_var,
+    "All Circles",
     "Circle 1 (HCM, OM)",
     "Circle 2 (Expense, Reporting, Travel)",
     "Circle 3 (Learning)",
