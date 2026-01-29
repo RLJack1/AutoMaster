@@ -646,13 +646,14 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                     print(f"Reopened Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Reopened Cases")
                 else:
                     if log_func:
-                        log_func(f"Reopened Cases {control_no}: Case {case_number} has an unprocessed/blank location.")
+                        log_func(f"Reopened Cases {control_no}: Case {case_number} has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/Reopened Cases.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        print(f"Reopened Cases completed: {total_cases_written} cases written.\n")
+        if log_func:
+            log_func(f"Reopened Cases completed: {total_cases_written} cases written.\n")
 
         return control_no, total_cases_written
 
@@ -782,13 +783,14 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                     print(f"Breached Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Breached Cases")
                 else:
                     if log_func:
-                        log_func(f"Breached Cases {control_no}: Case {case_number} has an unprocessed/blank location.")
+                        log_func(f"Breached Cases {control_no}: Case {case_number} has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/Breached Cases.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        print(f"Breached Cases completed: {total_cases_written} cases written.\n")
+        if log_func:
+            log_func(f"Breached Cases completed: {total_cases_written} cases written.\n")
 
         return control_no, total_cases_written
 
@@ -925,13 +927,14 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                     print(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSATs")
                 else:
                     if log_func:
-                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unprocessed/blank location.")
+                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/CSATs.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        print(f"CSAT completed: {total_cases_written} cases written.\n")
+        if log_func:
+            log_func(f"CSAT completed: {total_cases_written} cases written.\n")
 
         return control_no, total_cases_written
 
@@ -1089,13 +1092,13 @@ def process_files():
                     if location and location.strip():
                         print(f"QA Checks {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}")
                     else:
-                        log_to_console(f"QA Checks {control_no}: Case {case_number} has an unprocessed/blank location.")
+                        log_to_console(f"QA Checks {control_no}: Case {case_number} has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}.")
 
                     control_no += 1
                     current_row += 1
                     total_cases_written += 1
 
-            print(f"QA Checks completed: {total_cases_written} cases written.\n")
+            log_to_console(f"QA Checks completed: {total_cases_written} cases written.\n")
 
             qa_checks_stats = {
                 'cases': total_cases_written
@@ -1230,7 +1233,7 @@ def on_mousewheel(event):
 main_canvas.bind_all("<MouseWheel>", on_mousewheel)
 
 # Console frame
-console_label = tk.Label(scrollable_frame, text="Console Output", font=("Arial", 12, "bold"),
+console_label = tk.Label(scrollable_frame, text="Console:", font=("Arial", 12, "bold"),
                          bg="#BFBFBF", fg="black")
 console_label.pack(anchor=tk.W, padx=20, pady=(10, 5))
 
