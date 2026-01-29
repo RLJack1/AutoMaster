@@ -42,7 +42,7 @@ COUNTRY_LOCATION_MAP = {
     "Czech Republic": {
         "formatted_prefixes": ["PH2_CZ"],
         "arbitrary_codes": [
-            
+            "Cz"
         ]
     },
     "France": {
@@ -617,8 +617,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         # Track statistics
         total_cases_written = 0
 
-        if log_func:
-            log_func(f"=== PROCESSING REOPENED CASES ===")
+        print(f"=== PROCESSING REOPENED CASES ===")
 
         # Process each member with cases
         for corpkey, member_data in corpkey_to_member.items():
@@ -642,19 +641,18 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
 
-                # Log to console
-                if log_func:
-                    if location and location.strip():
-                        log_func(f"Reopened Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Reopened Cases")
-                    else:
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if location and location.strip():
+                    print(f"Reopened Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Reopened Cases")
+                else:
+                    if log_func:
                         log_func(f"Reopened Cases {control_no}: Case {case_number} has an unprocessed/blank location.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        if log_func:
-            log_func(f"Reopened Cases completed: {total_cases_written} cases written.\n")
+        print(f"Reopened Cases completed: {total_cases_written} cases written.\n")
 
         return control_no, total_cases_written
 
@@ -754,8 +752,7 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
         # Track statistics
         total_cases_written = 0
 
-        if log_func:
-            log_func(f"=== PROCESSING BREACHED CASES ===")
+        print(f"=== PROCESSING BREACHED CASES ===")
 
         # Process each member with cases
         for corpkey, member_data in corpkey_to_member.items():
@@ -780,19 +777,18 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                 ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
                 ws[f"J{current_row}"].value = case[breach_reason_col]  # Column J for Breach Reason
 
-                # Log to console
-                if log_func:
-                    if location and location.strip():
-                        log_func(f"Breached Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Breached Cases")
-                    else:
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if location and location.strip():
+                    print(f"Breached Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Breached Cases")
+                else:
+                    if log_func:
                         log_func(f"Breached Cases {control_no}: Case {case_number} has an unprocessed/blank location.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        if log_func:
-            log_func(f"Breached Cases completed: {total_cases_written} cases written.\n")
+        print(f"Breached Cases completed: {total_cases_written} cases written.\n")
 
         return control_no, total_cases_written
 
@@ -895,8 +891,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
         # Track statistics
         total_cases_written = 0
 
-        if log_func:
-            log_func(f"=== PROCESSING CSAT ===")
+        print(f"=== PROCESSING CSAT ===")
 
         # Process each member with cases
         for corpkey, member_data in corpkey_to_member.items():
@@ -925,19 +920,18 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                 ws[f"K{current_row}"].value = case[comments_col]  # Comment
                 ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
 
-                # Log to console
-                if log_func:
-                    if location and location.strip():
-                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSATs")
-                    else:
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if location and location.strip():
+                    print(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSATs")
+                else:
+                    if log_func:
                         log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unprocessed/blank location.")
 
                 control_no += 1
                 current_row += 1
                 total_cases_written += 1
 
-        if log_func:
-            log_func(f"CSAT completed: {total_cases_written} cases written.\n")
+        print(f"CSAT completed: {total_cases_written} cases written.\n")
 
         return control_no, total_cases_written
 
@@ -951,8 +945,14 @@ def process_files():
     member_file = member_entry.get()
     selected_circle_text = circle_var.get()
 
-    if not raw_file or not member_file or not qcl_template:
-        messagebox.showerror("Error", "Please select all required files.")
+    # Require Member List and QCL Template
+    if not member_file or not qcl_template:
+        messagebox.showerror("Error", "Please select Member List and QCL Template files.")
+        return
+
+    # Require at least one raw data file (QA Checks or QA Reviews)
+    if not raw_file and not qa_review_file:
+        messagebox.showerror("Error", "Please select at least one raw data file (QA Checks or QA Reviews).")
         return
 
     # Parse the selected circle
@@ -961,7 +961,7 @@ def process_files():
 
     # Clear console and start logging
     clear_console()
-    log_to_console(f"========== PROCESSING WITH FILTER: {circle_filter_msg} ==========")
+    print(f"\n========== PROCESSING WITH FILTER: {circle_filter_msg} ==========")
 
     try:
         # Copy template and preserve all features first
@@ -1049,7 +1049,7 @@ def process_files():
                             # Store row with its index (add 2 for Excel row: 1 for header, 1 for 0-index)
                             corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
-            log_to_console(f"=== PROCESSING QA CHECKS ===")
+            print(f"=== PROCESSING QA CHECKS ===")
 
             ws = wb["QA Checks"]
             current_row = find_qcl_start_row(ws)
@@ -1085,9 +1085,9 @@ def process_files():
                     ws[f"F{current_row}"].value = case_number
                     ws[f"G{current_row}"].value = case[service_col]
 
-                    # Log to console
+                    # Log statistics to terminal, unprocessed notices to GUI console
                     if location and location.strip():
-                        log_to_console(f"QA Checks {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}")
+                        print(f"QA Checks {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}")
                     else:
                         log_to_console(f"QA Checks {control_no}: Case {case_number} has an unprocessed/blank location.")
 
@@ -1095,7 +1095,7 @@ def process_files():
                     current_row += 1
                     total_cases_written += 1
 
-            log_to_console(f"QA Checks completed: {total_cases_written} cases written.\n")
+            print(f"QA Checks completed: {total_cases_written} cases written.\n")
 
             qa_checks_stats = {
                 'cases': total_cases_written
@@ -1166,7 +1166,7 @@ def process_files():
         wb.close()
 
         # Build success message
-        log_to_console("=== PROCESSING COMPLETE ===")
+        print("=== PROCESSING COMPLETE ===")
 
         success_msg = "QCL generated successfully!\n\n"
         success_msg += f"Output: {output_path}\n\n"
