@@ -941,6 +941,164 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - CSATs: {str(e)}")
 
+def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None):
+
+    # Process QA Reviews - CSAT Chat sheet
+    # Only processes if selected_circle is None (All Circles) or Circle 6
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
+
+    # CSAT Chat is exclusive to Circle 6 - skip if another circle is selected
+    if selected_circle is not None and selected_circle != 6:
+        print("CSAT Chat: Skipped (only applicable for Circle 6).")
+        return control_no_start, 0
+
+    try:
+        # Check if "CSAT Chat" sheet exists in the QA Review file
+        xls = pd.ExcelFile(qa_review_file)
+        if "CSAT Chat" not in xls.sheet_names:
+            if log_func:
+                log_func("CSAT Chat: No 'CSAT Chat' sheet found in the QA Reviews file.")
+            return control_no_start, 0
+
+        # Read the "CSAT Chat" sheet from QA Review file
+        csat_chat_df = pd.read_excel(qa_review_file, sheet_name="CSAT Chat")
+
+        # Check if the sheet has any data
+        if csat_chat_df.empty:
+            if log_func:
+                log_func("CSAT Chat: No data found in the 'CSAT Chat' sheet.")
+            return control_no_start, 0
+
+        # Find required columns in CSAT Chat sheet
+        def find_column_containing(df, search_terms):
+            """Find column that contains any of the search terms (case-insensitive)"""
+            for col in df.columns:
+                col_lower = str(col).strip().lower()
+                for term in search_terms:
+                    if f"[{term.strip().lower()}]" in col_lower or term.strip().lower() in col_lower:
+                        return col
+            raise ValueError(f"Missing required column containing: {search_terms}")
+
+        # Column mapping for CSAT Chat:
+        raw_team_col = find_column_containing(csat_chat_df, ["team"])  # Column H -> QCL Column C
+        country_code_col = find_column_containing(csat_chat_df, ["subject person country code"])  # Column G -> QCL Column D
+        agent_col = find_column_containing(csat_chat_df, ["agent"])  # Column I -> QCL Column E
+        csat_id_col = find_column_containing(csat_chat_df, ["csat id"])  # Column B -> QCL Column F
+        case_number_col = find_column_containing(csat_chat_df, ["case number"])  # Column D -> QCL Column G
+        hrservice_col = find_column_containing(csat_chat_df, ["hr service"])  # Column P -> QCL Column H
+        csat_score_col = find_column_containing(csat_chat_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
+        comments_col = find_column_containing(csat_chat_df, ["comsments", "comments"])  # Column F -> QCL Column K [NOTE: "Comsments" is the actual spelling in the raw file]
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build corpkey to member mapping
+        corpkey_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'team_name': team_name,
+                    'tenure': tenure,
+                    'cases': []
+                }
+
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey (with row index)
+        # No circle filtering on individual cases — the entire sheet is Circle 6 only
+        for row_idx, row in csat_chat_df.iterrows():
+            agent_name = str(row[agent_col]).strip()
+            if agent_name and agent_name.lower() != 'nan':
+                corpkey = extract_corpkey_from_name(agent_name)
+                if corpkey and corpkey in corpkey_to_member:
+                    corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
+
+        # Access the CSAT Chat sheet in QCL
+        if "CSAT Chat" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'CSAT Chat' sheet")
+
+        ws = wb["CSAT Chat"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        total_cases_written = 0
+
+        print(f"=== PROCESSING CSAT CHAT ===")
+
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            # Write ALL cases to QCL - CSAT Chat sheet (no sampling)
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[case_number_col]
+                csat_id = case[csat_id_col]
+                location = format_location(case[country_code_col])
+
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col])  # Team
+                ws[f"D{current_row}"].value = location
+                ws[f"E{current_row}"].value = member_data['team_name']  # Processor Name
+                ws[f"F{current_row}"].value = csat_id  # CSAT ID
+                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
+                ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
+                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
+                ws[f"K{current_row}"].value = case[comments_col]  # Comment
+                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
+
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if location and location.strip():
+                    print(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSAT Chat")
+                else:
+                    if log_func:
+                        log_func(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/CSAT Chat.")
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        if log_func:
+            log_func(f"CSAT Chat completed: {total_cases_written} cases written.\n")
+
+        return control_no, total_cases_written
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - CSAT Chat: {str(e)}")
+
 def process_files():
     raw_file = qa_checks_entry.get()
     qa_review_file = qa_review_entry.get()
@@ -984,6 +1142,7 @@ def process_files():
         qa_reviews_reopened_stats = None
         qa_reviews_breached_stats = None
         qa_reviews_csats_stats = None
+        qa_reviews_csat_chat_stats = None
 
         # ========== PROCESS QA CHECKS ==========
         if raw_file:
@@ -1164,6 +1323,26 @@ def process_files():
                 log_to_console(f"Warning: Could not process QA Reviews - CSATs - {str(e)}")
                 qa_reviews_csats_stats = None
 
+        # ========== PROCESS QA REVIEWS - CSAT CHAT ==========
+        if qa_review_file:
+            try:
+                control_no_start = 1  # Start from 1 for CSAT Chat
+                _, cases_written = process_qa_reviews_csat_chat(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start,
+                    selected_circle,
+                    log_to_console
+                )
+
+                qa_reviews_csat_chat_stats = {
+                    'cases': cases_written
+                }
+            except Exception as e:
+                log_to_console(f"Warning: Could not process QA Reviews - CSAT Chat - {str(e)}")
+                qa_reviews_csat_chat_stats = None
+
         # Save workbook
         wb.save(output_path)
         wb.close()
@@ -1184,7 +1363,10 @@ def process_files():
             success_msg += f"Breached Cases: {qa_reviews_breached_stats['cases']} cases written\n"
 
         if qa_reviews_csats_stats:
-            success_msg += f"CSAT: {qa_reviews_csats_stats['cases']} cases written"
+            success_msg += f"CSAT: {qa_reviews_csats_stats['cases']} cases written\n"
+
+        if qa_reviews_csat_chat_stats:
+            success_msg += f"CSAT Chat: {qa_reviews_csat_chat_stats['cases']} cases written"
 
         messagebox.showinfo("Success", success_msg)
 
