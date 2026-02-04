@@ -24,7 +24,6 @@ COUNTRY_LOCATION_MAP = {
     "Austria": {
         "formatted_prefixes": ["PH2_AT"],
         "arbitrary_codes": [
-            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU"
         ]
     },
     "Belgium": {
@@ -357,26 +356,34 @@ def extract_formatted_prefix(location_code):
 
 
 def format_location(raw_location):
-    if pd.isna(raw_location):
-        return ""
+    """
+    Returns a tuple: (formatted_location, was_recognized, raw_value)
+    - was_recognized is True if location matched the dictionary
+    - was_recognized is False if location was unrecognized
+    - was_recognized is None if location was blank/empty
+    - raw_value is the original input (for logging unrecognized codes)
+    """
+    if pd.isna(raw_location) or str(raw_location).strip() == "":
+        return ("", None, "")  # Blank location
 
-    raw_location = str(raw_location).upper().strip()
+    raw_location_str = str(raw_location).strip()
+    raw_location_upper = raw_location_str.upper()
 
     # Extract formatted prefix if applicable
-    prefix = extract_formatted_prefix(raw_location)
+    prefix = extract_formatted_prefix(raw_location_upper)
 
     for country, rules in COUNTRY_LOCATION_MAP.items():
         # Check formatted prefixes
         if prefix in rules.get("formatted_prefixes", []):
-            return country
+            return (country, True, raw_location_str)
 
         # Check arbitrary/manual codes
         for code in rules.get("arbitrary_codes", []):
-            if code.upper() in raw_location:
-                return country
+            if code.upper() in raw_location_upper:
+                return (country, True, raw_location_str)
 
-    # Fallback if no match
-    return raw_location.title()
+    # No match found - return original value (unrecognized)
+    return (raw_location_str, False, raw_location_str)
 
 def infer_location_from_opened_for(opened_for_value):
     """
@@ -400,18 +407,23 @@ def infer_location_from_opened_for(opened_for_value):
 
 def get_case_location(location_value, opened_for_value):
     """
-    Gets the location for a case, trying Location first, then falling back to Opened for
+    Gets the location for a case, trying Location first, then falling back to Opened for.
+    Returns a tuple: (formatted_location, was_recognized, raw_value)
+    - was_recognized is True if location matched the dictionary
+    - was_recognized is False if location was unrecognized
+    - was_recognized is None if location was blank/empty
+    - raw_value is the original location value (for logging unrecognized codes)
     """
     # Try to get location from Location column first
-    location = format_location(location_value)
-    
-    # If location is missing or couldn't be determined, try to infer from Opened for
-    if not location or location == str(location_value).title():
+    location, recognized, raw_value = format_location(location_value)
+
+    # If location is blank or unrecognized, try to infer from Opened for
+    if recognized is None or recognized is False:
         inferred = infer_location_from_opened_for(opened_for_value)
         if inferred:
-            return inferred
-    
-    return location
+            return (inferred, True, raw_value)
+
+    return (location, recognized, raw_value)
 
 def find_column(df, possible_names):
     # Finds a column in df whose header matches one of the possible_names.
@@ -631,7 +643,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 case = case_data['row']
                 raw_row_num = case_data['raw_row_num']
                 case_number = case[number_col]
-                location = format_location(case[country_code_col])
+                location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
@@ -642,11 +654,14 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
 
                 # Log statistics to terminal, unprocessed notices to GUI console
-                if location and location.strip():
+                if recognized is True:
                     print(f"Reopened Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Reopened Cases")
-                else:
+                elif recognized is False:
                     if log_func:
-                        log_func(f"Reopened Cases {control_no}: Case {case_number} has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/Reopened Cases.")
+                        log_func(f"Reopened Cases {control_no}: Case {case_number} has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/Reopened Cases.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"Reopened Cases {control_no}: Case {case_number} has a blank location. Taken from row {raw_row_num} in {raw_file_name}/Reopened Cases.")
 
                 control_no += 1
                 current_row += 1
@@ -767,7 +782,7 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                 case = case_data['row']
                 raw_row_num = case_data['raw_row_num']
                 case_number = case[number_col]
-                location = format_location(case[country_code_col])
+                location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
@@ -779,11 +794,14 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                 ws[f"J{current_row}"].value = case[breach_reason_col]  # Column J for Breach Reason
 
                 # Log statistics to terminal, unprocessed notices to GUI console
-                if location and location.strip():
+                if recognized is True:
                     print(f"Breached Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Breached Cases")
-                else:
+                elif recognized is False:
                     if log_func:
-                        log_func(f"Breached Cases {control_no}: Case {case_number} has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/Breached Cases.")
+                        log_func(f"Breached Cases {control_no}: Case {case_number} has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/Breached Cases.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"Breached Cases {control_no}: Case {case_number} has a blank location. Taken from row {raw_row_num} in {raw_file_name}/Breached Cases.")
 
                 control_no += 1
                 current_row += 1
@@ -908,7 +926,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                 raw_row_num = case_data['raw_row_num']
                 case_number = case[case_number_col]
                 csat_id = case[csat_id_col]
-                location = format_location(case[country_code_col])
+                location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col]) # Team
@@ -923,11 +941,14 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                 ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
 
                 # Log statistics to terminal, unprocessed notices to GUI console
-                if location and location.strip():
+                if recognized is True:
                     print(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSATs")
-                else:
+                elif recognized is False:
                     if log_func:
-                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/CSATs.")
+                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/CSATs.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has a blank location. Taken from row {raw_row_num} in {raw_file_name}/CSATs.")
 
                 control_no += 1
                 current_row += 1
@@ -1066,7 +1087,7 @@ def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_sta
                 raw_row_num = case_data['raw_row_num']
                 case_number = case[case_number_col]
                 csat_id = case[csat_id_col]
-                location = format_location(case[country_code_col])
+                location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
                 ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col])  # Team
@@ -1081,11 +1102,14 @@ def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_sta
                 ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
 
                 # Log statistics to terminal, unprocessed notices to GUI console
-                if location and location.strip():
+                if recognized is True:
                     print(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSAT Chat")
-                else:
+                elif recognized is False:
                     if log_func:
-                        log_func(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}/CSAT Chat.")
+                        log_func(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/CSAT Chat.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) has a blank location. Taken from row {raw_row_num} in {raw_file_name}/CSAT Chat.")
 
                 control_no += 1
                 current_row += 1
@@ -1238,7 +1262,7 @@ def process_files():
                     case = case_data['row']
                     raw_row_num = case_data['raw_row_num']
                     case_number = case[case_id_col]
-                    location = get_case_location(case[location_col], case[opened_for_col])
+                    location, recognized, raw_location = get_case_location(case[location_col], case[opened_for_col])
 
                     ws[f"B{current_row}"].value = control_no
                     ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
@@ -1248,10 +1272,12 @@ def process_files():
                     ws[f"G{current_row}"].value = case[service_col]
 
                     # Log statistics to terminal, unprocessed notices to GUI console
-                    if location and location.strip():
+                    if recognized is True:
                         print(f"QA Checks {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}")
-                    else:
-                        log_to_console(f"QA Checks {control_no}: Case {case_number} has an unprocessed/blank location. Taken from row {raw_row_num} in {raw_file_name}.")
+                    elif recognized is False:
+                        log_to_console(f"QA Checks {control_no}: Case {case_number} has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}.")
+                    else:  # recognized is None (blank)
+                        log_to_console(f"QA Checks {control_no}: Case {case_number} has a blank location. Taken from row {raw_row_num} in {raw_file_name}.")
 
                     control_no += 1
                     current_row += 1
