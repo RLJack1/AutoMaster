@@ -568,7 +568,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         reopened_reason_col = find_column_containing(reopened_df, ["re-opened reason", "reopened reason"])  # Column AA -> QCL Column I
 
         # When adding a column in Reopened Cases, please make sure to follow this format:
-        NEWCOLUMNNAMEHERE_col = find_column_containing(reopened_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+        # NEWCOLUMNNAMEHERE_col = find_column_containing(reopened_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -712,6 +712,9 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
         resolution_type_col = find_column_containing(breached_df, ["resolution type"])  # Column E -> QCL Column G
         breach_reason_col = find_column_containing(breached_df, ["sla breach reason"])  # Column AA -> QCL Column J
 
+        # When adding a column in Breached Cases, please make sure to follow this format:
+        # NEWBREACHEDCOLUMNNAMEHERE_col = find_column_containing(breached_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+
         # Read member list file
         member_header_row = detect_header_row(
             member_file,
@@ -799,6 +802,9 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                 ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
                 ws[f"J{current_row}"].value = case[breach_reason_col]  # Column J for Breach Reason
 
+                # To make sure that the new column is written into the Breached sheet in the QCL column, follow this format:
+                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
+
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
                     print(f"Breached Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Breached Cases")
@@ -852,6 +858,9 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
         hrservice_col = find_column_containing(csats_df, ["hr service"])  # Column Q -> QCL Column H
         csat_score_col = find_column_containing(csats_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
         comments_col = find_column_containing(csats_df, ["commments"])  # Column F -> QCL Column K [RENZO NOTE: FOR SOME REASON, COLUMN F HAS 3 Ms IN COMMENTS IN THE RAW FILE. THIS IS NOT A TYPO ??????]
+
+        # When adding a column in CSATS, please make sure to follow this format:
+        # NEWCSATSCOLUMNNAMEHERE_col = find_column_containing(csats_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -945,6 +954,9 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                 ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
                 ws[f"K{current_row}"].value = case[comments_col]  # Comment
                 ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
+
+                # To make sure that the new column is written into the CSATs sheet in the QCL column, follow this format:
+                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
 
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
