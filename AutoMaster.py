@@ -567,6 +567,9 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         hr_service_col = find_column_containing(reopened_df, ["hr service"])  # Column C -> QCL Column G
         reopened_reason_col = find_column_containing(reopened_df, ["re-opened reason", "reopened reason"])  # Column AA -> QCL Column I
 
+        # When adding a column in Reopened Cases, please make sure to follow this format:
+        NEWCOLUMNNAMEHERE_col = find_column_containing(reopened_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+
         # Read member list file
         member_header_row = detect_header_row(
             member_file,
@@ -638,7 +641,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
             if len(cases) == 0:
                 continue
 
-            # Write ALL cases to QCL - Reopened Cases sheet (no sampling)
+            # Write ALL cases to QCL - Reopened Cases sheet
             for case_data in cases:
                 case = case_data['row']
                 raw_row_num = case_data['raw_row_num']
@@ -652,6 +655,9 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 ws[f"F{current_row}"].value = case_number
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
+
+                # To make sure that the new column is written into the Reopened sheet in the QCL column, follow this format:
+                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
 
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
