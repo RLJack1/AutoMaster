@@ -1371,7 +1371,7 @@ def process_files():
             # Read member list file
             member_header_row = detect_header_row(
                 member_file,
-                required_columns=["Team", "Tenure"]
+                required_columns=["Team"]
             )
             members_df = pd.read_excel(member_file, header=member_header_row)
 
@@ -1385,16 +1385,14 @@ def process_files():
 
             member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
             team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
-            tenure_col = find_column(members_df, ["Tenure"])
 
             # Build corpkey to member mapping
             corpkey_to_member = {}
             for _, member in members_df.iterrows():
                 member_name_raw = str(member[member_name_col]).strip()
                 team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
-                tenure = member[tenure_col]
 
-                if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                if not member_name_raw or member_name_raw.lower() == 'nan':
                     continue
 
                 corpkey = extract_corpkey_from_name(member_name_raw)
@@ -1402,7 +1400,6 @@ def process_files():
                     corpkey_to_member[corpkey] = {
                         'name': member_name_raw,
                         'team_name': team_name,  # Store the Team column name for display
-                        'tenure': tenure,
                         'cases': []
                     }
 
@@ -1438,11 +1435,11 @@ def process_files():
                 if len(cases) == 0:
                     continue
 
-                tenure = member_data['tenure']
-
-                # Calculate sample size based on tenure
-                sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
-                sampled_cases = random.sample(cases, min(sample_size, len(cases)))
+                # Fixed cap of 15 cases per agent; randomize only if agent has more than 15
+                if len(cases) > 15:
+                    sampled_cases = random.sample(cases, 15)
+                else:
+                    sampled_cases = cases
 
                 # Write sampled cases to QCL
                 for case_data in sampled_cases:
