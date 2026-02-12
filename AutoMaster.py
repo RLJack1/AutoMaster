@@ -15,6 +15,30 @@ warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
 # Dictionary containing the country codes for all available countries serviced by CPS
 COUNTRY_LOCATION_MAP = {
+    "Albania": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AL"
+        ]
+    },
+    "American Samoa": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AS"
+        ]
+    },
+    "Andorra": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AD"
+        ]
+    },
+    "Antarctica": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AQ"
+        ]
+    },
     "Australia": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
@@ -26,10 +50,64 @@ COUNTRY_LOCATION_MAP = {
         "arbitrary_codes": [
         ]
     },
+    "Bangladesh": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BD"
+        ]
+    },
+    "Belarus": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BY"
+        ]
+    },
     "Belgium": {
         "formatted_prefixes": ["PH3_BE_ING_BANK", "PH3_BE"],
         "arbitrary_codes": [
             "BE", "M1 03 14", "Guest BE - Guest.BE"
+        ]
+    },
+    "Bhutan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BT"
+        ]
+    },
+    "Bosnia and Herzegovina": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BA"
+        ]
+    },
+    "Brazil": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "Brazil"
+        ]
+    },
+    "British Indian Ocean Territory": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IO"
+        ]
+    },
+    "Brunei Darussalam": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BN"
+        ]
+    },
+    "Bulgaria": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BG"
+        ]
+    },
+    "Cambodia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "KH"
         ]
     },
     "China": {
@@ -38,22 +116,124 @@ COUNTRY_LOCATION_MAP = {
             "CN", "China"
         ]
     },
+    "Christmas Island": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CX"
+        ]
+    },
+    "Cocos (Keeling) Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CC"
+        ]
+    },
+    "Cook Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CK"
+        ]
+    },
+    "Croatia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "HR"
+        ]
+    },
+    "Cyprus": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CY"
+        ]
+    },
     "Czech Republic": {
         "formatted_prefixes": ["PH2_CZ"],
         "arbitrary_codes": [
             "Cz"
         ]
     },
+    "Denmark": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "DK"
+        ]
+    },
+    "Estonia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "EE"
+        ]
+    },
+    "Faroe Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FO"
+        ]
+    },
+    "Fiji": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FJ"
+        ]
+    },
+    "Finland": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FI"
+        ]
+    },
     "France": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "France", "RIC"
+            "France", "RIC", "FR"
+        ]
+    },
+    "French Polynesia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PF"
+        ]
+    },
+    "French Souther Territoties": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TF"
+        ]
+    },
+    "Georgia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GE"
         ]
     },
     "Germany": {
         "formatted_prefixes": ["PH2_DE"],
         "arbitrary_codes": [
-            "Germany", "Guest DE - Guest.DE"
+            "DE", "Germany", "Guest DE - Guest.DE"
+        ]
+    },
+    "Gibraltar": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GI"
+        ]
+    },
+    "Greece": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GR"
+        ]
+    },
+    "Guam": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GU"
+        ]
+    },
+    "Heard Island and McDonald Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "HM"
         ]
     },
     "Hong Kong": {
@@ -68,22 +248,88 @@ COUNTRY_LOCATION_MAP = {
             "HU"
         ]
     },
+    "Iceland": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IS"
+        ]
+    },
+    "India": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IN"
+        ]
+    },
+    "Indonesia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "ID"
+        ]
+    },
     "Ireland": {
         "formatted_prefixes": ["PH2_IE"],
         "arbitrary_codes": [
-            
+            "IE"
+        ]
+    },
+    "Isle of Man": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IM"
         ]
     },
     "Italy": {
         "formatted_prefixes": ["PH2_ITA"],
         "arbitrary_codes": [
-            "Italy"
+            "Italy", "IT"
         ]
     },
     "Japan": {
         "formatted_prefixes": ["PH2_JP"],
         "arbitrary_codes": [
-            "Japan"
+            "Japan", "JP"
+        ]
+    },
+    "Kiribati": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "KI"
+        ]
+    },
+    "Kosovo": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "XK"
+        ]
+    },
+    "Kyrgyzstan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "KG"
+        ]
+    },
+    "Laos": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LA"
+        ]
+    },
+    "Latvia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LV"
+        ]
+    },
+    "Liechtenstein": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LI"
+        ]
+    },
+    "Lithuania": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LT"
         ]
     },
     "Luxembourg": {
@@ -92,10 +338,94 @@ COUNTRY_LOCATION_MAP = {
             "LU"
         ]
     },
+    "Macao": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MO"
+        ]
+    },
+    "Macedonia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MK"
+        ]
+    },
+    "Malaysia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MY"
+        ]
+    },
+    "Maldives": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MV"
+        ]
+    },
+    "Malta": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MT"
+        ]
+    },
+    "Marshall Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MH"
+        ]
+    },
     "Mexico": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
             "MX"
+        ]
+    },
+    "Micronesia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FM"
+        ]
+    },
+    "Moldova": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MD"
+        ]
+    },
+    "Monaco": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MC"
+        ]
+    },
+    "Mongolia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MN"
+        ]
+    },
+    "Montenegro": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "ME"
+        ]
+    },
+    "Myanmar": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MM"
+        ]
+    },
+    "Nauru": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NR"
+        ]
+    },
+    "Nepal": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NP"
         ]
     },
     "Netherlands": {
@@ -115,16 +445,88 @@ COUNTRY_LOCATION_MAP = {
             "Guest NL - Guest.NL",
         ]
     },
+    "New Caledonia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NC"
+        ]
+    },
+    "New Zealand": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NZ"
+        ]
+    },
+    "Niue": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NU"
+        ]
+    },
+    "Norfolk Island": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NF"
+        ]
+    },
+    "Northern Mariana Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MP"
+        ]
+    },
+    "Norway": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NO"
+        ]
+    },
+    "Pakistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PK"
+        ]
+    },
+    "Palau": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PW"
+        ]
+    },
+    "Papua New Guinea": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PG"
+        ]
+    },
     "Philippines": {
         "formatted_prefixes": ["PH1_PH", "Guest PH", "PH2_PH"],
         "arbitrary_codes": [
             "PH", "Guest PH - Guest.PH"
         ]
     },
+    "Philippines Bank": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PH Bank"
+        ]
+    },
+    "Pitcairn": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PN"
+        ]
+    },
     "Poland": {
         "formatted_prefixes": ["PH1_PL"],
         "arbitrary_codes": [
             "PL", "PL Bank", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+        ]
+    },
+    "Poland Bank": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PL Bank"
         ]
     },
     "Portugal": {
@@ -136,13 +538,31 @@ COUNTRY_LOCATION_MAP = {
     "Romania": {
         "formatted_prefixes": ["PH1_RO"],
         "arbitrary_codes": [
-            "PH", "Guest PH - Guest.PH", "RO",
+            "Guest PH - Guest.PH", "RO",
         ]
     },
     "Russian Federation": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
             "RUSMCW001", "RU"
+        ]
+    },
+    "Samoa": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "WS"
+        ]
+    },
+    "San Marino": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SM"
+        ]
+    },
+    "Serbia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "RS"
         ]
     },
     "Singapore": {
@@ -157,21 +577,45 @@ COUNTRY_LOCATION_MAP = {
             "SK",
         ]
     },
+    "Slovenia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SI"
+        ]
+    },
+    "Solomon Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SB"
+        ]
+    },
     "South Korea": {
         "formatted_prefixes": ["PH2_KR"],
         "arbitrary_codes": [
             "Kr", "KR"
         ]
     },
+    "South Sudan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SS"
+        ]
+    },
     "Spain": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "Spain", "Madrid_Pobla", "Madrid_Poblados"
+            "ES","Spain", "Madrid_Pobla", "Madrid_Poblados"
         ]
     },
     "Sri Lanka": {
         "formatted_prefixes": ["PH2_LK"],
         "arbitrary_codes": [
+        ]
+    },
+    "Sweden": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SE"
         ]
     },
     "Switzerland": {
@@ -186,15 +630,58 @@ COUNTRY_LOCATION_MAP = {
             "TW"
         ]
     },
+    "Tajikistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TJ"
+        ]
+    },
+    "Thailand": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TH"
+        ]
+    },
+    "Timor-Leste": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TL"
+        ]
+    },
+    "Tokelau": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TK"
+        ]
+    },
+    "Tonga": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TO"
+        ]
+    },
     "Turkey": {
         "formatted_prefixes": ["PH2_TR"],
         "arbitrary_codes": [
             "TR", "4127"
         ]
     },
+    "Turkmenistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TM"
+        ]
+    },
+    "Tuvalu": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TV"
+        ]
+    },
     "Ukraine": {
         "formatted_prefixes": ["PH2_UA"],
         "arbitrary_codes": [
+            "UA"
         ]
     },
     "United Kingdom": {
@@ -208,10 +695,40 @@ COUNTRY_LOCATION_MAP = {
         "arbitrary_codes": [
         ]
     },
+    "United States Minor Outlying Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "UM"
+        ]
+    },
+    "Uzbekistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "UZ"
+        ]
+    },
+    "Vanuatu": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "VU"
+        ]
+    },
+    "Vatican City State": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "VA"
+        ]
+    },
     "Vietnam": {
         "formatted_prefixes": [""],
         "arbitrary_codes": [
             "Vn"
+        ]
+    },
+    "Wallis and Futuna": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            ""
         ]
     },
 }
