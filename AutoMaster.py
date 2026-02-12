@@ -124,7 +124,7 @@ COUNTRY_LOCATION_MAP = {
     "Poland": {
         "formatted_prefixes": ["PH1_PL"],
         "arbitrary_codes": [
-            "PL", "PL Bank", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+            "PL", "PL Bank", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-SOKOLSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
         ]
     },
     "Portugal": {
@@ -166,7 +166,7 @@ COUNTRY_LOCATION_MAP = {
     "Spain": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "Spain", "Madrid_Pobla", "Madrid_Poblados", "Valladolid"
+            "Spain", "Madrid_Pobla", "Madrid_Poblados", "Valladolid", "ES_Madrid_Hubs"
         ]
     },
     "Sri Lanka": {
@@ -197,6 +197,11 @@ COUNTRY_LOCATION_MAP = {
         "arbitrary_codes": [
         ]
     },
+    "United Arab Emirates": {
+        "formatted_prefixes": ["PH2_AE"],
+        "arbitrary_codes": [
+        ]
+    },
     "United Kingdom": {
         "formatted_prefixes": ["PH2_GB"],
         "arbitrary_codes": [
@@ -209,7 +214,7 @@ COUNTRY_LOCATION_MAP = {
         ]
     },
     "Vietnam": {
-        "formatted_prefixes": [],
+        "formatted_prefixes": ["PH2_VN"],
         "arbitrary_codes": [
             "Vn"
         ]
@@ -1768,5 +1773,4 @@ automate_btn = tk.Button(scrollable_frame, text="AutoMate", font=("Arial", 14, "
                         bg="#FF6B35", fg="white", width=20, height=2,
                         relief=tk.FLAT, cursor="hand2", command=process_files)
 automate_btn.pack(pady=30)
-
 root.mainloop()
