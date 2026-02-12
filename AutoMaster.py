@@ -48,6 +48,7 @@ COUNTRY_LOCATION_MAP = {
     "Austria": {
         "formatted_prefixes": ["PH2_AT"],
         "arbitrary_codes": [
+            "AT"
         ]
     },
     "Bangladesh": {
@@ -722,13 +723,13 @@ COUNTRY_LOCATION_MAP = {
     "Vietnam": {
         "formatted_prefixes": [""],
         "arbitrary_codes": [
-            "Vn"
+            "Vn", "VN"
         ]
     },
     "Wallis and Futuna": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            ""
+            "WF"
         ]
     },
 }
