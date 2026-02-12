@@ -75,7 +75,7 @@ COUNTRY_LOCATION_MAP = {
         ]
     },
     "Italy": {
-        "formatted_prefixes": ["PH2_ITA"],
+        "formatted_prefixes": ["PH2_ITA", "PH3_ITA"],
         "arbitrary_codes": [
             "Italy"
         ]
@@ -166,7 +166,7 @@ COUNTRY_LOCATION_MAP = {
     "Spain": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "Spain", "Madrid_Pobla", "Madrid_Poblados"
+            "Spain", "Madrid_Pobla", "Madrid_Poblados", "Valladolid"
         ]
     },
     "Sri Lanka": {
@@ -209,7 +209,7 @@ COUNTRY_LOCATION_MAP = {
         ]
     },
     "Vietnam": {
-        "formatted_prefixes": [""],
+        "formatted_prefixes": [],
         "arbitrary_codes": [
             "Vn"
         ]
@@ -369,17 +369,19 @@ def format_location(raw_location):
     raw_location_str = str(raw_location).strip()
     raw_location_upper = raw_location_str.upper()
 
-    # Extract formatted prefix if applicable
+    # Extract formatted prefix if applicable (only for formatted prefix checking)
     prefix = extract_formatted_prefix(raw_location_upper)
 
+    # FIRST PASS: Check formatted prefixes for ALL countries
     for country, rules in COUNTRY_LOCATION_MAP.items():
-        # Check formatted prefixes
         if prefix in rules.get("formatted_prefixes", []):
             return (country, True, raw_location_str)
 
-        # Check arbitrary/manual codes
+    # SECOND PASS: Check arbitrary codes with EXACT matching
+    for country, rules in COUNTRY_LOCATION_MAP.items():
         for code in rules.get("arbitrary_codes", []):
-            if code.upper() in raw_location_upper:
+            # Exact match only (case-insensitive)
+            if code.upper() == raw_location_upper:
                 return (country, True, raw_location_str)
 
     # No match found - return original value (unrecognized)
