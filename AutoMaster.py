@@ -432,12 +432,11 @@ COUNTRY_LOCATION_MAP = {
     "Netherlands": {
         "formatted_prefixes": ["Guest NL"],
         "arbitrary_codes": [
-            "ACT", "ALP", "AME", "AT",
+            "ACT", "ALP", "AME",
             "BMG", 
             "CDR", 
             "DEA", "DP", 
             "HBP",
-            "IE",
             "KBK","KCC", "KCM", "KFL", "KFR", "KGD", "KMH", "KNF", "KQB", "KQB", "KSY", "KXS", "KZK", "KZR", "KNZ", "KBE", "KLQ", "KQT",
             "LZ",
             "NL",
@@ -539,7 +538,7 @@ COUNTRY_LOCATION_MAP = {
     "Romania": {
         "formatted_prefixes": ["PH1_RO"],
         "arbitrary_codes": [
-            "Guest PH - Guest.PH", "RO",
+            "RO"
         ]
     },
     "Russian Federation": {
