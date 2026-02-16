@@ -2004,7 +2004,8 @@ def process_files():
     # Validate Katowice selection against member list
     if is_katowice and member_file:
         try:
-            member_preview = pd.read_excel(member_file, nrows=0)
+            member_header_row = detect_header_row(member_file, required_columns=["Team"])
+            member_preview = pd.read_excel(member_file, header=member_header_row, nrows=0)
             has_ktw = any("ktw support" in str(col).strip().lower() for col in member_preview.columns)
             if not has_ktw:
                 messagebox.showerror("Error", "Katowice option selected but the Member List does not contain a 'KTW Support' column.")
