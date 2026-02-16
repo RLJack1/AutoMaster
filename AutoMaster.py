@@ -520,7 +520,7 @@ COUNTRY_LOCATION_MAP = {
     "Poland": {
         "formatted_prefixes": ["PH1_PL"],
         "arbitrary_codes": [
-            "PL", "PL Bank", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+            "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-SOKOLSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
         ]
     },
     "Poland Bank": {
@@ -604,7 +604,7 @@ COUNTRY_LOCATION_MAP = {
     "Spain": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "ES","Spain", "Madrid_Pobla", "Madrid_Poblados"
+            "Spain", "Madrid_Pobla", "Madrid_Poblados", "Valladolid", "ES_Madrid_Hubs"
         ]
     },
     "Sri Lanka": {
@@ -720,7 +720,7 @@ COUNTRY_LOCATION_MAP = {
         ]
     },
     "Vietnam": {
-        "formatted_prefixes": [""],
+        "formatted_prefixes": ["PH2_VN"],
         "arbitrary_codes": [
             "Vn", "VN"
         ]
@@ -886,17 +886,19 @@ def format_location(raw_location):
     raw_location_str = str(raw_location).strip()
     raw_location_upper = raw_location_str.upper()
 
-    # Extract formatted prefix if applicable
+    # Extract formatted prefix if applicable (only for formatted prefix checking)
     prefix = extract_formatted_prefix(raw_location_upper)
 
+    # FIRST PASS: Check formatted prefixes for ALL countries
     for country, rules in COUNTRY_LOCATION_MAP.items():
-        # Check formatted prefixes
         if prefix in rules.get("formatted_prefixes", []):
             return (country, True, raw_location_str)
 
-        # Check arbitrary/manual codes
+    # SECOND PASS: Check arbitrary codes with EXACT matching
+    for country, rules in COUNTRY_LOCATION_MAP.items():
         for code in rules.get("arbitrary_codes", []):
-            if code.upper() in raw_location_upper:
+            # Exact match only (case-insensitive)
+            if code.upper() == raw_location_upper:
                 return (country, True, raw_location_str)
 
     # No match found - return original value (unrecognized)
@@ -1033,13 +1035,39 @@ def get_circle_from_assignment_group(assignment_group):
     else:
         return None
 
+KATOWICE_OPTIONS = [
+    "All Katowice",
+    "HCM - BE",
+    "HCM - NL",
+    "People Services - DE",
+    "People Services - NL",
+    "People Services - PL"
+]
+
+# Maps Katowice dropdown options to the assignment group substrings in the raw file
+KATOWICE_TEAM_MAP = {
+    "HCM - BE": "PL CPS HCM - BE ING",
+    "HCM - NL": "PL CPS HCM - NL ING",
+    "People Services - DE": "PL CPS People Services - DE ING",
+    "People Services - NL": "PL CPS People Services - NL ING",
+    "People Services - PL": "PL CPS People Services - PL ING"
+}
+
+def is_katowice_selection(circle_selection):
+    # Returns True if the dropdown selection is a Katowice option
+    return circle_selection in KATOWICE_OPTIONS
+
 def parse_circle_selection(circle_selection):
 
     # Parses the circle selection from the dropdown
-    # Returns the circle number (1-6) or None for "All Circles"
+    # Returns the circle number (1-6) for Manila, the raw string for Katowice, or None for "All Circles"
 
     if circle_selection == "All Circles":
         return None
+
+    # Katowice options return the raw string
+    if is_katowice_selection(circle_selection):
+        return circle_selection
 
     # Extract circle number from strings like "Circle 1 (HCM, OM)"
     if "Circle" in circle_selection:
@@ -1053,7 +1081,7 @@ def parse_circle_selection(circle_selection):
 
 # ---------------- MAIN PROCESS ---------------- #
 
-def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None):
+def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None, is_katowice=False):
 
     # Process QA Reviews - Reopened Cases sheet
     # selected_circle: None for all circles, or 1-6 for specific circle
@@ -1166,9 +1194,9 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
                 ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
                 ws[f"F{current_row}"].value = case_number
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
@@ -1198,7 +1226,7 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Reopened Cases: {str(e)}")
 
-def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None):
+def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None, is_katowice=False):
 
     # Process QA Reviews - Breached Cases sheet
     # selected_circle: None for all circles, or 1-6 for specific circle
@@ -1311,9 +1339,9 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                 location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
                 ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
                 ws[f"F{current_row}"].value = case_number
                 ws[f"G{current_row}"].value = case[hr_service_col]
                 ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
@@ -1344,7 +1372,7 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Breached Cases: {str(e)}")
 
-def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None):
+def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None, is_katowice=False):
 
     # Process QA Reviews - CSATs sheet
     # selected_circle: None for all circles, or 1-6 for specific circle
@@ -1461,9 +1489,9 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                 location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col]) # Team
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
                 ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
                 ws[f"F{current_row}"].value = csat_id  # CSAT ID
                 ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
                 ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
@@ -1497,7 +1525,7 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - CSATs: {str(e)}")
 
-def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_start, selected_circle_text="All Circles", log_func=None):
+def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_start, selected_circle_text="All Circles", log_func=None, is_katowice=False):
 
     # Process QA Reviews - CSAT Chat sheet
     # Only processes if All Circles or Circle 6 (Contact Center) is selected
@@ -1625,9 +1653,9 @@ def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_sta
                 location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col])  # Team
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
                 ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['team_name']  # Processor Name
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
                 ws[f"F{current_row}"].value = csat_id  # CSAT ID
                 ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
                 ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
@@ -1658,7 +1686,7 @@ def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_sta
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - CSAT Chat: {str(e)}")
 
-def process_qa_reviews_live_chat_fcr(qa_review_file, member_file, wb, control_no_start, selected_circle_text="All Circles", log_func=None):
+def process_qa_reviews_live_chat_fcr(qa_review_file, member_file, wb, control_no_start, selected_circle_text="All Circles", log_func=None, is_katowice=False):
 
     # Process QA Reviews - Live Chat FCR sheet
     # Only processes if All Circles or Circle 6 (Contact Center) is selected
@@ -1795,9 +1823,9 @@ def process_qa_reviews_live_chat_fcr(qa_review_file, member_file, wb, control_no
                 location, recognized, raw_location = format_location(case[country_code_col])
 
                 ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = format_assignment_group(case[raw_team_col])  # Team
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
                 ws[f"D{current_row}"].value = location  # Country
-                ws[f"E{current_row}"].value = member_data['team_name']  # Processor Name
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
                 ws[f"F{current_row}"].value = csat_id  # CSAT ID
                 ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
                 ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
@@ -1845,7 +1873,27 @@ def process_files():
 
     # Parse the selected circle
     selected_circle = parse_circle_selection(selected_circle_text)
-    circle_filter_msg = f"Circle {selected_circle}" if selected_circle else "All Circles"
+    is_katowice = is_katowice_selection(selected_circle_text)
+
+    # Build filter display message
+    if is_katowice:
+        circle_filter_msg = selected_circle_text
+    elif selected_circle:
+        circle_filter_msg = f"Circle {selected_circle}"
+    else:
+        circle_filter_msg = "All Circles"
+
+    # Validate Katowice selection against member list
+    if is_katowice and member_file:
+        try:
+            member_preview = pd.read_excel(member_file, nrows=0)
+            has_ktw = any("ktw support" in str(col).strip().lower() for col in member_preview.columns)
+            if not has_ktw:
+                messagebox.showerror("Error", "Katowice option selected but the Member List does not contain a 'KTW Support' column.")
+                return
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not read Member List to validate Katowice support: {str(e)}")
+            return
 
     # Clear console and start logging
     clear_console()
@@ -1966,9 +2014,9 @@ def process_files():
                     location, recognized, raw_location = get_case_location(case[location_col], case[opened_for_col])
 
                     ws[f"B{current_row}"].value = control_no
-                    ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
+                    ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
                     ws[f"D{current_row}"].value = location
-                    ws[f"E{current_row}"].value = member_data['team_name']  # Use Team column (LastName, FirstName format)
+                    ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
                     ws[f"F{current_row}"].value = case_number
                     ws[f"G{current_row}"].value = case[service_col]
 
@@ -2000,7 +2048,8 @@ def process_files():
                     wb,
                     control_no_start,
                     selected_circle,
-                    log_to_console
+                    log_to_console,
+                    is_katowice
                 )
 
                 qa_reviews_reopened_stats = {
@@ -2020,7 +2069,8 @@ def process_files():
                     wb,
                     control_no_start,
                     selected_circle,
-                    log_to_console
+                    log_to_console,
+                    is_katowice
                 )
 
                 qa_reviews_breached_stats = {
@@ -2040,7 +2090,8 @@ def process_files():
                     wb,
                     control_no_start,
                     selected_circle,
-                    log_to_console
+                    log_to_console,
+                    is_katowice
                 )
 
                 qa_reviews_csats_stats = {
@@ -2060,7 +2111,8 @@ def process_files():
                     wb,
                     control_no_start,
                     selected_circle_text,
-                    log_to_console
+                    log_to_console,
+                    is_katowice
                 )
 
                 qa_reviews_csat_chat_stats = {
@@ -2080,7 +2132,8 @@ def process_files():
                     wb,
                     control_no_start,
                     selected_circle_text,
-                    log_to_console
+                    log_to_console,
+                    is_katowice
                 )
 
                 qa_reviews_live_chat_fcr_stats = {
@@ -2211,7 +2264,13 @@ circle_dropdown = tk.OptionMenu(
     "Circle 4 (International Mobility)",
     "Circle 5 (Performance & Rewards)",
     "Circle 6 (Contact Center)",
-    "Circle 6 (Recruitment Admin)"
+    "Circle 6 (Recruitment Admin)",
+    "All Katowice",
+    "HCM - BE",
+    "HCM - NL",
+    "People Services - DE",
+    "People Services - NL",
+    "People Services - PL"
 )
 circle_dropdown.config(font=("Arial", 11), bg="white", fg="gray", 
                        relief=tk.FLAT, highlightthickness=0, width=35)
@@ -2283,5 +2342,4 @@ automate_btn = tk.Button(scrollable_frame, text="AutoMate", font=("Arial", 14, "
                         bg="#FF6B35", fg="white", width=20, height=2,
                         relief=tk.FLAT, cursor="hand2", command=process_files)
 automate_btn.pack(pady=30)
-
 root.mainloop()
