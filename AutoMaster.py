@@ -509,7 +509,7 @@ COUNTRY_LOCATION_MAP = {
     "Philippines Bank": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "PH Bank"
+            "PH Bank", "Guest PHB - Guest.PHB", "PHB"
         ]
     },
     "Pitcairn": {
@@ -688,7 +688,7 @@ COUNTRY_LOCATION_MAP = {
     "United Kingdom": {
         "formatted_prefixes": ["PH2_GB"],
         "arbitrary_codes": [
-            "Guest UK - Guest.UK", "United Kingdom"
+            "Guest UK - Guest.UK", "United Kingdom", "UK"
         ]
     },
     "United States": {
