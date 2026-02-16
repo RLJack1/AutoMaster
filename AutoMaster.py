@@ -1881,12 +1881,17 @@ def process_qa_reviews_wd_breach(qa_review_file, wb, control_no_start, selected_
                 log_func("WD Breach: Sheet not found in QA Reviews file. Skipping.")
             return control_no_start, 0
 
-        # Detect header row and read the WD Breach sheet
-        header_row = detect_header_row(
-            qa_review_file,
-            sheet_name="WD Breach",
-            required_columns=["Country", "SNOW Assignment Group", "Workday ID"]
-        )
+        # Detect header row — WD Breach uses "F02 - Workday Business Process[ColumnName]" format
+        # Search for a row containing any cell with "[Country]" in it
+        preview = pd.read_excel(qa_review_file, sheet_name="WD Breach", header=None)
+        header_row = None
+        for idx, row in preview.iterrows():
+            row_values = [str(cell).strip().lower() for cell in row.values if pd.notna(cell)]
+            if any("[country]" in val for val in row_values):
+                header_row = idx
+                break
+        if header_row is None:
+            raise ValueError("Could not find header row in WD Breach sheet")
         wd_breach_df = pd.read_excel(qa_review_file, sheet_name="WD Breach", header=header_row)
 
         # Check if sheet has data
@@ -1929,11 +1934,11 @@ def process_qa_reviews_wd_breach(qa_review_file, wb, control_no_start, selected_
                 wd_breach_df[snow_assignment_col].astype(str).str.strip().str.lower().str.contains(katowice_team, na=False)
             ]
 
-        # Access the WD Breach sheet in QCL
-        if "WD Breach" not in wb.sheetnames:
-            raise ValueError("QCL template does not contain 'WD Breach' sheet")
+        # Access the WD Breached Cases sheet in QCL
+        if "WD Breached Cases" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'WD Breached Cases' sheet")
 
-        ws = wb["WD Breach"]
+        ws = wb["WD Breached Cases"]
         current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
         control_no = control_no_start
 
