@@ -281,7 +281,7 @@ COUNTRY_LOCATION_MAP = {
         ]
     },
     "Italy": {
-        "formatted_prefixes": ["PH2_ITA"],
+        "formatted_prefixes": ["PH2_ITA", "PH3_ITA"],
         "arbitrary_codes": [
             "Italy", "IT"
         ]
@@ -569,7 +569,7 @@ COUNTRY_LOCATION_MAP = {
     "Singapore": {
         "formatted_prefixes": ["PH2_SG"],
         "arbitrary_codes": [
-            "SG", "Guest Asia - Guest.Asia", "Guest ASIA - Guest.ASIA"
+            "SG", "Guest Asia - Guest.Asia", "Guest ASIA - Guest.ASIA", "ASIA"
         ]
     },
     "Slovakia": {
