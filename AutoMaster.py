@@ -1861,6 +1861,117 @@ def process_qa_reviews_live_chat_fcr(qa_review_file, member_file, wb, control_no
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Live Chat FCR: {str(e)}")
 
+def process_qa_reviews_wd_breach(qa_review_file, wb, control_no_start, selected_circle_text="All Katowice", log_func=None):
+
+    # Process QA Reviews - WD Breach sheet
+    # Only processes when a Katowice option is selected
+    # No processor name — Column F is left blank for manual input
+    # Returns: (next_control_no, total_cases_written)
+
+    # WD Breach is exclusive to Katowice — skip if a Manila circle is selected
+    if not is_katowice_selection(selected_circle_text):
+        print("WD Breach: Skipped (only applicable for Katowice).")
+        return control_no_start, 0
+
+    try:
+        # Check if "WD Breach" sheet exists in the QA Review file
+        xls = pd.ExcelFile(qa_review_file)
+        if "WD Breach" not in xls.sheet_names:
+            if log_func:
+                log_func("WD Breach: Sheet not found in QA Reviews file. Skipping.")
+            return control_no_start, 0
+
+        # Detect header row and read the WD Breach sheet
+        header_row = detect_header_row(
+            qa_review_file,
+            sheet_name="WD Breach",
+            required_columns=["Country", "SNOW Assignment Group", "Workday ID"]
+        )
+        wd_breach_df = pd.read_excel(qa_review_file, sheet_name="WD Breach", header=header_row)
+
+        # Check if sheet has data
+        if wd_breach_df.empty:
+            if log_func:
+                log_func("WD Breach: Sheet is empty. Skipping.")
+            return control_no_start, 0
+
+        # Helper function for bracket-aware column search
+        def find_column_containing(df, search_terms):
+            for col in df.columns:
+                col_check = str(col).strip().lower()
+                if "[" in col_check and "]" in col_check:
+                    bracket_content = col_check[col_check.index("[") + 1:col_check.index("]")]
+                    for term in search_terms:
+                        if term.lower() == bracket_content:
+                            return col
+                for term in search_terms:
+                    if term.lower() == col_check:
+                        return col
+            raise ValueError(f"Could not find column matching any of {search_terms} in WD Breach sheet")
+
+        # Column mappings from raw file
+        snow_assignment_col = find_column_containing(wd_breach_df, ["snow assignment group"])
+        functional_area_col = find_column_containing(wd_breach_df, ["overall functional area"])
+        country_col = find_column_containing(wd_breach_df, ["country"])
+        bp_name_col = find_column_containing(wd_breach_df, ["business process name"])
+        workday_id_col = find_column_containing(wd_breach_df, ["workday id"])
+        bp_completed_col = find_column_containing(wd_breach_df, ["bp completed date"])
+        target_sla_col = find_column_containing(wd_breach_df, ["target sla days"])
+
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Filter cases by Katowice team if a specific team is selected
+        selected_circle = parse_circle_selection(selected_circle_text)
+        if selected_circle_text != "All Katowice" and selected_circle in KATOWICE_TEAM_MAP:
+            katowice_team = KATOWICE_TEAM_MAP[selected_circle].lower()
+            wd_breach_df = wd_breach_df[
+                wd_breach_df[snow_assignment_col].astype(str).str.strip().str.lower().str.contains(katowice_team, na=False)
+            ]
+
+        # Access the WD Breach sheet in QCL
+        if "WD Breach" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'WD Breach' sheet")
+
+        ws = wb["WD Breach"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        total_cases_written = 0
+
+        print(f"=== PROCESSING WD BREACH ===")
+
+        # Process each case (no member matching — processor name is manual)
+        for row_idx, case in wd_breach_df.iterrows():
+            raw_row_num = row_idx + 2
+            workday_id = case[workday_id_col]
+            country = case[country_col] if not pd.isna(case[country_col]) else ""
+
+            ws[f"B{current_row}"].value = control_no
+            ws[f"C{current_row}"].value = str(case[snow_assignment_col]).strip()  # Team (no formatting — Katowice only)
+            ws[f"D{current_row}"].value = str(case[functional_area_col]).strip() if not pd.isna(case[functional_area_col]) else ""
+            ws[f"E{current_row}"].value = str(country).strip()  # Country
+            # Column F (Processor Name) left blank for manual input
+            ws[f"G{current_row}"].value = str(case[bp_name_col]).strip() if not pd.isna(case[bp_name_col]) else ""
+            ws[f"H{current_row}"].value = workday_id  # Reference Number (Workday ID)
+            ws[f"I{current_row}"].value = case[bp_completed_col]  # BP Completed Date
+            ws[f"J{current_row}"].value = case[target_sla_col]  # Target SLA Days
+
+            print(f"WD Breach {control_no}: Workday ID {workday_id} from {country} was taken from row {raw_row_num} in {raw_file_name}/WD Breach")
+
+            control_no += 1
+            current_row += 1
+            total_cases_written += 1
+
+        if log_func:
+            log_func(f"WD Breach completed: {total_cases_written} cases written.\n")
+
+        return control_no, total_cases_written
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - WD Breach: {str(e)}")
+
 def process_files():
     raw_file = qa_checks_entry.get()
     qa_review_file = qa_review_entry.get()
@@ -1926,6 +2037,7 @@ def process_files():
         qa_reviews_csats_stats = None
         qa_reviews_csat_chat_stats = None
         qa_reviews_live_chat_fcr_stats = None
+        qa_reviews_wd_breach_stats = None
 
         # ========== PROCESS QA CHECKS ==========
         if raw_file:
@@ -2150,6 +2262,25 @@ def process_files():
                 log_to_console(f"Warning: Could not process QA Reviews - Live Chat FCR - {str(e)}")
                 qa_reviews_live_chat_fcr_stats = None
 
+        # ========== PROCESS QA REVIEWS - WD BREACH ==========
+        if qa_review_file:
+            try:
+                control_no_start = 1
+                _, cases_written = process_qa_reviews_wd_breach(
+                    qa_review_file,
+                    wb,
+                    control_no_start,
+                    selected_circle_text,
+                    log_to_console
+                )
+
+                qa_reviews_wd_breach_stats = {
+                    'cases': cases_written
+                }
+            except Exception as e:
+                log_to_console(f"Warning: Could not process QA Reviews - WD Breach - {str(e)}")
+                qa_reviews_wd_breach_stats = None
+
         # Save workbook
         wb.save(output_path)
         wb.close()
@@ -2176,7 +2307,10 @@ def process_files():
             success_msg += f"CSAT Chat: {qa_reviews_csat_chat_stats['cases']} cases written\n"
 
         if qa_reviews_live_chat_fcr_stats:
-            success_msg += f"Live Chat FCR: {qa_reviews_live_chat_fcr_stats['cases']} cases written"
+            success_msg += f"Live Chat FCR: {qa_reviews_live_chat_fcr_stats['cases']} cases written\n"
+
+        if qa_reviews_wd_breach_stats:
+            success_msg += f"WD Breach: {qa_reviews_wd_breach_stats['cases']} cases written"
 
         messagebox.showinfo("Success", success_msg)
 
