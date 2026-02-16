@@ -15,6 +15,30 @@ warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
 # Dictionary containing the country codes for all available countries serviced by CPS
 COUNTRY_LOCATION_MAP = {
+    "Albania": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AL"
+        ]
+    },
+    "American Samoa": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AS"
+        ]
+    },
+    "Andorra": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AD"
+        ]
+    },
+    "Antarctica": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "AQ"
+        ]
+    },
     "Australia": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
@@ -24,13 +48,67 @@ COUNTRY_LOCATION_MAP = {
     "Austria": {
         "formatted_prefixes": ["PH2_AT"],
         "arbitrary_codes": [
-            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU"
+            "AT"
+        ]
+    },
+    "Bangladesh": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BD"
+        ]
+    },
+    "Belarus": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BY"
         ]
     },
     "Belgium": {
         "formatted_prefixes": ["PH3_BE_ING_BANK", "PH3_BE"],
         "arbitrary_codes": [
-            "BE", "M1 03 14"
+            "BE", "M1 03 14", "Guest BE - Guest.BE"
+        ]
+    },
+    "Bhutan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BT"
+        ]
+    },
+    "Bosnia and Herzegovina": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BA"
+        ]
+    },
+    "Brazil": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "Brazil"
+        ]
+    },
+    "British Indian Ocean Territory": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IO"
+        ]
+    },
+    "Brunei Darussalam": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BN"
+        ]
+    },
+    "Bulgaria": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "BG"
+        ]
+    },
+    "Cambodia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "KH"
         ]
     },
     "China": {
@@ -39,22 +117,124 @@ COUNTRY_LOCATION_MAP = {
             "CN", "China"
         ]
     },
+    "Christmas Island": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CX"
+        ]
+    },
+    "Cocos (Keeling) Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CC"
+        ]
+    },
+    "Cook Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CK"
+        ]
+    },
+    "Croatia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "HR"
+        ]
+    },
+    "Cyprus": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "CY"
+        ]
+    },
     "Czech Republic": {
         "formatted_prefixes": ["PH2_CZ"],
         "arbitrary_codes": [
-            
+            "Cz"
+        ]
+    },
+    "Denmark": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "DK"
+        ]
+    },
+    "Estonia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "EE"
+        ]
+    },
+    "Faroe Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FO"
+        ]
+    },
+    "Fiji": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FJ"
+        ]
+    },
+    "Finland": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FI"
         ]
     },
     "France": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "France", "RIC"
+            "France", "RIC", "FR"
+        ]
+    },
+    "French Polynesia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PF"
+        ]
+    },
+    "French Souther Territoties": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TF"
+        ]
+    },
+    "Georgia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GE"
         ]
     },
     "Germany": {
         "formatted_prefixes": ["PH2_DE"],
         "arbitrary_codes": [
-            "Germany"
+            "DE", "Germany", "Guest DE - Guest.DE"
+        ]
+    },
+    "Gibraltar": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GI"
+        ]
+    },
+    "Greece": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GR"
+        ]
+    },
+    "Guam": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "GU"
+        ]
+    },
+    "Heard Island and McDonald Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "HM"
         ]
     },
     "Hong Kong": {
@@ -69,22 +249,88 @@ COUNTRY_LOCATION_MAP = {
             "HU"
         ]
     },
+    "Iceland": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IS"
+        ]
+    },
+    "India": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IN"
+        ]
+    },
+    "Indonesia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "ID"
+        ]
+    },
     "Ireland": {
         "formatted_prefixes": ["PH2_IE"],
         "arbitrary_codes": [
-            
+            "IE"
+        ]
+    },
+    "Isle of Man": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "IM"
         ]
     },
     "Italy": {
         "formatted_prefixes": ["PH2_ITA"],
         "arbitrary_codes": [
-            "Italy"
+            "Italy", "IT"
         ]
     },
     "Japan": {
         "formatted_prefixes": ["PH2_JP"],
         "arbitrary_codes": [
-            "Japan"
+            "Japan", "JP"
+        ]
+    },
+    "Kiribati": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "KI"
+        ]
+    },
+    "Kosovo": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "XK"
+        ]
+    },
+    "Kyrgyzstan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "KG"
+        ]
+    },
+    "Laos": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LA"
+        ]
+    },
+    "Latvia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LV"
+        ]
+    },
+    "Liechtenstein": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LI"
+        ]
+    },
+    "Lithuania": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "LT"
         ]
     },
     "Luxembourg": {
@@ -93,28 +339,164 @@ COUNTRY_LOCATION_MAP = {
             "LU"
         ]
     },
+    "Macao": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MO"
+        ]
+    },
+    "Macedonia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MK"
+        ]
+    },
+    "Malaysia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MY"
+        ]
+    },
+    "Maldives": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MV"
+        ]
+    },
+    "Malta": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MT"
+        ]
+    },
+    "Marshall Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MH"
+        ]
+    },
     "Mexico": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
             "MX"
         ]
     },
+    "Micronesia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "FM"
+        ]
+    },
+    "Moldova": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MD"
+        ]
+    },
+    "Monaco": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MC"
+        ]
+    },
+    "Mongolia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MN"
+        ]
+    },
+    "Montenegro": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "ME"
+        ]
+    },
+    "Myanmar": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MM"
+        ]
+    },
+    "Nauru": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NR"
+        ]
+    },
+    "Nepal": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NP"
+        ]
+    },
     "Netherlands": {
         "formatted_prefixes": ["Guest NL"],
         "arbitrary_codes": [
-            "ACT", "ALP", "AME", "AT",
+            "ACT", "ALP", "AME",
             "BMG", 
             "CDR", 
             "DEA", "DP", 
             "HBP",
-            "IE",
             "KBK","KCC", "KCM", "KFL", "KFR", "KGD", "KMH", "KNF", "KQB", "KQB", "KSY", "KXS", "KZK", "KZR", "KNZ", "KBE", "KLQ", "KQT",
             "LZ",
-            "NL", "RO",
+            "NL",
             "RBG", 
             "WP","WBM",
             "Guest NL - Guest.NL",
-            
+        ]
+    },
+    "New Caledonia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NC"
+        ]
+    },
+    "New Zealand": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NZ"
+        ]
+    },
+    "Niue": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NU"
+        ]
+    },
+    "Norfolk Island": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NF"
+        ]
+    },
+    "Northern Mariana Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "MP"
+        ]
+    },
+    "Norway": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "NO"
+        ]
+    },
+    "Pakistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PK"
+        ]
+    },
+    "Palau": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PW"
+        ]
+    },
+    "Papua New Guinea": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PG"
         ]
     },
     "Philippines": {
@@ -123,10 +505,28 @@ COUNTRY_LOCATION_MAP = {
             "PH", "Guest PH - Guest.PH"
         ]
     },
+    "Philippines Bank": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PH Bank"
+        ]
+    },
+    "Pitcairn": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PN"
+        ]
+    },
     "Poland": {
         "formatted_prefixes": ["PH1_PL"],
         "arbitrary_codes": [
-            "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+            "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-SOKOLSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+        ]
+    },
+    "Poland Bank": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "PL Bank"
         ]
     },
     "Portugal": {
@@ -138,7 +538,7 @@ COUNTRY_LOCATION_MAP = {
     "Romania": {
         "formatted_prefixes": ["PH1_RO"],
         "arbitrary_codes": [
-            "PH", "Guest PH - Guest.PH"
+            "RO"
         ]
     },
     "Russian Federation": {
@@ -147,10 +547,28 @@ COUNTRY_LOCATION_MAP = {
             "RUSMCW001", "RU"
         ]
     },
+    "Samoa": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "WS"
+        ]
+    },
+    "San Marino": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SM"
+        ]
+    },
+    "Serbia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "RS"
+        ]
+    },
     "Singapore": {
         "formatted_prefixes": ["PH2_SG"],
         "arbitrary_codes": [
-            "SG", "Guest Asia - Guest.Asia"
+            "SG", "Guest Asia - Guest.Asia", "Guest ASIA - Guest.ASIA"
         ]
     },
     "Slovakia": {
@@ -159,20 +577,45 @@ COUNTRY_LOCATION_MAP = {
             "SK",
         ]
     },
+    "Slovenia": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SI"
+        ]
+    },
+    "Solomon Islands": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SB"
+        ]
+    },
     "South Korea": {
         "formatted_prefixes": ["PH2_KR"],
         "arbitrary_codes": [
+            "Kr", "KR"
+        ]
+    },
+    "South Sudan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SS"
         ]
     },
     "Spain": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "Spain", "Madrid_Pobla", "Madrid_Poblados"
+            "Spain", "Madrid_Pobla", "Madrid_Poblados", "Valladolid", "ES_Madrid_Hubs"
         ]
     },
     "Sri Lanka": {
         "formatted_prefixes": ["PH2_LK"],
         "arbitrary_codes": [
+        ]
+    },
+    "Sweden": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "SE"
         ]
     },
     "Switzerland": {
@@ -187,20 +630,64 @@ COUNTRY_LOCATION_MAP = {
             "TW"
         ]
     },
+    "Tajikistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TJ"
+        ]
+    },
+    "Thailand": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TH"
+        ]
+    },
+    "Timor-Leste": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TL"
+        ]
+    },
+    "Tokelau": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TK"
+        ]
+    },
+    "Tonga": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TO"
+        ]
+    },
     "Turkey": {
         "formatted_prefixes": ["PH2_TR"],
         "arbitrary_codes": [
             "TR", "4127"
         ]
     },
+    "Turkmenistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TM"
+        ]
+    },
+    "Tuvalu": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "TV"
+        ]
+    },
     "Ukraine": {
         "formatted_prefixes": ["PH2_UA"],
         "arbitrary_codes": [
+            "UA"
         ]
     },
     "United Kingdom": {
         "formatted_prefixes": ["PH2_GB"],
         "arbitrary_codes": [
+            "Guest UK - Guest.UK", "United Kingdom"
         ]
     },
     "United States": {
@@ -208,10 +695,40 @@ COUNTRY_LOCATION_MAP = {
         "arbitrary_codes": [
         ]
     },
-    "Vietnam": {
-        "formatted_prefixes": [""],
+    "United States Minor Outlying Islands": {
+        "formatted_prefixes": [],
         "arbitrary_codes": [
-            "Vn"
+            "UM"
+        ]
+    },
+    "Uzbekistan": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "UZ"
+        ]
+    },
+    "Vanuatu": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "VU"
+        ]
+    },
+    "Vatican City State": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "VA"
+        ]
+    },
+    "Vietnam": {
+        "formatted_prefixes": ["PH2_VN"],
+        "arbitrary_codes": [
+            "Vn", "VN"
+        ]
+    },
+    "Wallis and Futuna": {
+        "formatted_prefixes": [],
+        "arbitrary_codes": [
+            "WF"
         ]
     },
 }
@@ -282,7 +799,7 @@ def format_assignment_group(group):
     if "compensation" in group or "benefits" in group:
         return "Performance & Rewards"
     elif "expenses" in group:
-        return "Expense"
+        return "Expenses"
     elif "hcm" in group:
         return "Human Capital Management"
     elif "organizational management" in group:
@@ -301,6 +818,40 @@ def format_assignment_group(group):
         return "Travel"
     else:
         return group.title()
+
+def calculate_csat_type(csat_score):
+    """
+    Calculates CSAT Type based on CSAT Score
+    1-2 = Dissatisfied
+    3 = Neutral
+    4-5 = Satisfied
+    """
+    if pd.isna(csat_score):
+        return ""
+    
+    try:
+        score = int(csat_score)
+        if score >= 1 and score <= 2:
+            return "Dissatisfied"
+        elif score == 3:
+            return "Neutral"
+        elif score >= 4 and score <= 5:
+            return "Satisfied"
+        else:
+            return ""
+    except:
+        return ""
+
+def calculate_response_category(comment):
+    """
+    Calculates Response Category based on Comments
+    If comment is empty/blank = "No comment"
+    Otherwise = leave blank
+    """
+    if pd.isna(comment) or str(comment).strip() == "":
+        return "No comment"
+    else:
+        return ""
 
 def calculate_sample_percentage(tenure):
     if tenure < 6:
@@ -322,26 +873,76 @@ def extract_formatted_prefix(location_code):
 
 
 def format_location(raw_location):
-    if pd.isna(raw_location):
-        return ""
+    """
+    Returns a tuple: (formatted_location, was_recognized, raw_value)
+    - was_recognized is True if location matched the dictionary
+    - was_recognized is False if location was unrecognized
+    - was_recognized is None if location was blank/empty
+    - raw_value is the original input (for logging unrecognized codes)
+    """
+    if pd.isna(raw_location) or str(raw_location).strip() == "":
+        return ("", None, "")  # Blank location
 
-    raw_location = str(raw_location).upper().strip()
+    raw_location_str = str(raw_location).strip()
+    raw_location_upper = raw_location_str.upper()
 
-    # Extract formatted prefix if applicable
-    prefix = extract_formatted_prefix(raw_location)
+    # Extract formatted prefix if applicable (only for formatted prefix checking)
+    prefix = extract_formatted_prefix(raw_location_upper)
 
+    # FIRST PASS: Check formatted prefixes for ALL countries
     for country, rules in COUNTRY_LOCATION_MAP.items():
-        # Check formatted prefixes
         if prefix in rules.get("formatted_prefixes", []):
-            return country
+            return (country, True, raw_location_str)
 
-        # Check arbitrary/manual codes
+    # SECOND PASS: Check arbitrary codes with EXACT matching
+    for country, rules in COUNTRY_LOCATION_MAP.items():
         for code in rules.get("arbitrary_codes", []):
-            if code.upper() in raw_location:
-                return country
+            # Exact match only (case-insensitive)
+            if code.upper() == raw_location_upper:
+                return (country, True, raw_location_str)
 
-    # Fallback if no match
-    return raw_location.title()
+    # No match found - return original value (unrecognized)
+    return (raw_location_str, False, raw_location_str)
+
+def infer_location_from_opened_for(opened_for_value):
+    """
+    Infers location from 'Opened for' field by checking for guest account patterns
+    like "Guest XX - Guest.XX" where XX is a country code
+    Returns the country name if found, empty string otherwise
+    """
+    if pd.isna(opened_for_value):
+        return ""
+    
+    opened_for_str = str(opened_for_value).strip()
+    
+    # Check against all arbitrary codes in the country location map
+    for country, rules in COUNTRY_LOCATION_MAP.items():
+        for code in rules.get("arbitrary_codes", []):
+            # Check if the code appears in the opened_for field (case-insensitive)
+            if code.upper() in opened_for_str.upper():
+                return country
+    
+    return ""
+
+def get_case_location(location_value, opened_for_value):
+    """
+    Gets the location for a case, trying Location first, then falling back to Opened for.
+    Returns a tuple: (formatted_location, was_recognized, raw_value)
+    - was_recognized is True if location matched the dictionary
+    - was_recognized is False if location was unrecognized
+    - was_recognized is None if location was blank/empty
+    - raw_value is the original location value (for logging unrecognized codes)
+    """
+    # Try to get location from Location column first
+    location, recognized, raw_value = format_location(location_value)
+
+    # If location is blank or unrecognized, try to infer from Opened for
+    if recognized is None or recognized is False:
+        inferred = infer_location_from_opened_for(opened_for_value)
+        if inferred:
+            return (inferred, True, raw_value)
+
+    return (location, recognized, raw_value)
 
 def find_column(df, possible_names):
     # Finds a column in df whose header matches one of the possible_names.
@@ -398,48 +999,94 @@ def extract_corpkey_from_name(formatted_name):
 
     return None
 
-# def get_circle_number(assignment_group):
+def get_circle_from_assignment_group(assignment_group):
 
-#     # Maps assignment group to circle number (1-6)
-#     # Circle 1: Human Capital Management and Org Management
-#     # Circle 2: Expense, Travel, and Reporting
-#     # Circle 3: Learning
-#     # Circle 4: International Mobility
-#     # Circle 5: Performance & Rewards
-#     # Circle 6: Contact Center and Recruitment Admin
+    # Maps assignment group to circle number (1-6)
+    # Circle 1: Human Capital Management and Org Management
+    # Circle 2: Expense, Travel, and Reporting
+    # Circle 3: Learning
+    # Circle 4: International Mobility
+    # Circle 5: Performance & Rewards
+    # Circle 6: Contact Center and Recruitment Admin
 
-#     if pd.isna(assignment_group):
-#         return 999  # Unknown groups go to the end
+    if pd.isna(assignment_group):
+        return None
 
-#     group_lower = str(assignment_group).lower()
+    group_lower = str(assignment_group).lower()
 
-#     # Circle 1
-#     if "human capital management" in group_lower or "hcm" in group_lower or "org management" in group_lower or "organizational management" in group_lower:
-#         return 1
-#     # Circle 2
-#     elif "expense" in group_lower or "travel" in group_lower or "reporting" in group_lower:
-#         return 2
-#     # Circle 3
-#     elif "learning" in group_lower:
-#         return 3
-#     # Circle 4
-#     elif "international mobility" in group_lower or "mobility" in group_lower:
-#         return 4
-#     # Circle 5
-#     elif "performance" in group_lower or "rewards" in group_lower or "compensation" in group_lower or "benefits" in group_lower:
-#         return 5
-#     # Circle 6
-#     elif "contact center" in group_lower or "people services" in group_lower or "recruitment admin" in group_lower:
-#         return 6
-#     else:
-#         return 999  # Unknown groups go to the end
+    # Circle 1: HCM and Org Management
+    if "human capital management" in group_lower or "hcm" in group_lower or "org management" in group_lower or "organizational management" in group_lower:
+        return 1
+    # Circle 2: Expense, Travel, and Reporting
+    elif "expense" in group_lower or "travel" in group_lower or "reporting" in group_lower:
+        return 2
+    # Circle 3: Learning
+    elif "learning" in group_lower:
+        return 3
+    # Circle 4: International Mobility
+    elif "international mobility" in group_lower or "mobility" in group_lower:
+        return 4
+    # Circle 5: Performance & Rewards
+    elif "performance" in group_lower or "rewards" in group_lower or "compensation" in group_lower or "benefits" in group_lower:
+        return 5
+    # Circle 6: Contact Center and Recruitment Admin
+    elif "contact center" in group_lower or "people services" in group_lower or "recruitment admin" in group_lower:
+        return 6
+    else:
+        return None
+
+KATOWICE_OPTIONS = [
+    "All Katowice",
+    "HCM - BE",
+    "HCM - NL",
+    "People Services - DE",
+    "People Services - NL",
+    "People Services - PL"
+]
+
+# Maps Katowice dropdown options to the assignment group substrings in the raw file
+KATOWICE_TEAM_MAP = {
+    "HCM - BE": "PL CPS HCM - BE ING",
+    "HCM - NL": "PL CPS HCM - NL ING",
+    "People Services - DE": "PL CPS People Services - DE ING",
+    "People Services - NL": "PL CPS People Services - NL ING",
+    "People Services - PL": "PL CPS People Services - PL ING"
+}
+
+def is_katowice_selection(circle_selection):
+    # Returns True if the dropdown selection is a Katowice option
+    return circle_selection in KATOWICE_OPTIONS
+
+def parse_circle_selection(circle_selection):
+
+    # Parses the circle selection from the dropdown
+    # Returns the circle number (1-6) for Manila, the raw string for Katowice, or None for "All Circles"
+
+    if circle_selection == "All Circles":
+        return None
+
+    # Katowice options return the raw string
+    if is_katowice_selection(circle_selection):
+        return circle_selection
+
+    # Extract circle number from strings like "Circle 1 (HCM, OM)"
+    if "Circle" in circle_selection:
+        try:
+            circle_num = int(circle_selection.split()[1])
+            return circle_num
+        except:
+            return None
+
+    return None
 
 # ---------------- MAIN PROCESS ---------------- #
 
-def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start):
+def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None, is_katowice=False):
 
     # Process QA Reviews - Reopened Cases sheet
-    # Returns: (next_control_no, total_cases_written, matched_agents, unmatched_agents)
+    # selected_circle: None for all circles, or 1-6 for specific circle
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
 
     try:
         # Read the "Reopened Cases" sheet from QA Review file
@@ -464,6 +1111,9 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         number_col = find_column_containing(reopened_df, ["number"])  # Column E -> QCL Column F
         hr_service_col = find_column_containing(reopened_df, ["hr service"])  # Column C -> QCL Column G
         reopened_reason_col = find_column_containing(reopened_df, ["re-opened reason", "reopened reason"])  # Column AA -> QCL Column I
+
+        # When adding a column in Reopened Cases, please make sure to follow this format:
+        # NEWCOLUMNNAMEHERE_col = find_column_containing(reopened_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -503,29 +1153,18 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                     'cases': []
                 }
 
-        # Collect all cases with their metadata
-        # all_cases = []
-        # for _, row in reopened_df.iterrows():
-        #     user_id = str(row[user_id_col]).strip()
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
 
-        #     # Get team name from member list if corpkey matches, otherwise use empty
-        #     team_name = ""
-        #     if user_id and user_id.lower() != 'nan' and user_id in corpkey_to_member:
-        #         team_name = corpkey_to_member[user_id]['team_name']
-
-        #     # Get assignment group and calculate circle number for sorting
-        #     assignment_group = row[assignment_group_col]
-        #     circle_num = get_circle_number(assignment_group)
-
-        #     all_cases.append({
-        #         'row': row,
-        #         'team_name': team_name,
-        #         'circle': circle_num,
-        #         'assignment_group': assignment_group
-        #     })
-
-        # # Sort all cases by circle number (ascending)
-        # all_cases.sort(key=lambda x: x['circle'])
+        # Build dictionary of cases per corpkey with circle filtering (with row index)
+        for row_idx, row in reopened_df.iterrows():
+            user_id = str(row[user_id_col]).strip()
+            if user_id and user_id.lower() != 'nan':
+                # Check if case matches the selected circle filter
+                case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                if selected_circle is None or case_circle == selected_circle:
+                    if user_id in corpkey_to_member:
+                        corpkey_to_member[user_id]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
         # Access the Reopened Cases sheet
         if "Reopened Cases" not in wb.sheetnames:
@@ -537,50 +1176,728 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
 
         # Track statistics
         total_cases_written = 0
-        matched_agents = set()
-        unmatched_count = 0
 
-        # Write all cases to QCL - Reopened Cases sheet (sorted by circle)
-        for case_data in all_cases:
-            case = case_data['row']
-            team_name = case_data['team_name']
+        print(f"=== PROCESSING REOPENED CASES ===")
 
-            # Track matched agents
-            user_id = str(case[user_id_col]).strip()
-            if user_id and user_id in corpkey_to_member:
-                matched_agents.add(user_id)
-            elif user_id and user_id.lower() != 'nan':
-                unmatched_count += 1
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
 
-            ws[f"B{current_row}"].value = control_no
-            ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-            ws[f"D{current_row}"].value = format_location(case[country_code_col])
-            ws[f"E{current_row}"].value = team_name if team_name else ""  # Use Team column name or empty
-            ws[f"F{current_row}"].value = case[number_col]
-            ws[f"G{current_row}"].value = case[hr_service_col]
-            ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
+            if len(cases) == 0:
+                continue
 
-            control_no += 1
-            current_row += 1
-            total_cases_written += 1
+            # Write ALL cases to QCL - Reopened Cases sheet
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[number_col]
+                location, recognized, raw_location = format_location(case[country_code_col])
 
-        print(f"Total cases processed: {total_cases_written}")
-        print(f"Cases organized by circle (1-6)")
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
+                ws[f"D{current_row}"].value = location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
+                ws[f"F{current_row}"].value = case_number
+                ws[f"G{current_row}"].value = case[hr_service_col]
+                ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
 
-        return control_no, total_cases_written, len(matched_agents), unmatched_count
+                # To make sure that the new column is written into the Reopened sheet in the QCL column, follow this format:
+                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
+
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if recognized is True:
+                    print(f"Reopened Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Reopened Cases")
+                elif recognized is False:
+                    if log_func:
+                        log_func(f"Reopened Cases {control_no}: Case {case_number} has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/Reopened Cases.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"Reopened Cases {control_no}: Case {case_number} has a blank location. Taken from row {raw_row_num} in {raw_file_name}/Reopened Cases.")
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        if log_func:
+            log_func(f"Reopened Cases completed: {total_cases_written} cases written.\n")
+
+        return control_no, total_cases_written
 
     except Exception as e:
         raise Exception(f"Error processing QA Reviews - Reopened Cases: {str(e)}")
+
+def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None, is_katowice=False):
+
+    # Process QA Reviews - Breached Cases sheet
+    # selected_circle: None for all circles, or 1-6 for specific circle
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
+
+    try:
+        # Read the "Breached Cases" sheet from QA Review file
+        breached_df = pd.read_excel(qa_review_file, sheet_name="Breached Cases")
+
+        # Find required columns in Breached Cases sheet
+        def find_column_containing(df, search_terms):
+            """Find column that contains any of the search terms (case-insensitive)"""
+            for col in df.columns:
+                col_lower = str(col).strip().lower()
+                for term in search_terms:
+                    # Check if the term is in the column name (handles both bracket and non-bracket formats)
+                    if f"[{term.strip().lower()}]" in col_lower or term.strip().lower() in col_lower:
+                        return col
+            raise ValueError(f"Missing required column containing: {search_terms}")
+
+        # Column mapping for Breached Cases:
+        assignment_group_col = find_column_containing(breached_df, ["assignment group"])  # Column N -> QCL Column B
+        country_code_col = find_column_containing(breached_df, ["country code"])  # Column O -> QCL Column C
+        user_id_col = find_column_containing(breached_df, ["user id"])  # Column M (corp key only) -> QCL Column D
+        number_col = find_column_containing(breached_df, ["number"])  # Column C -> QCL Column E
+        hr_service_col = find_column_containing(breached_df, ["hr service"])  # Column D -> QCL Column F
+        resolution_type_col = find_column_containing(breached_df, ["resolution type"])  # Column E -> QCL Column G
+        breach_reason_col = find_column_containing(breached_df, ["sla breach reason"])  # Column AA -> QCL Column J
+
+        # When adding a column in Breached Cases, please make sure to follow this format:
+        # NEWBREACHEDCOLUMNNAMEHERE_col = find_column_containing(breached_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build corpkey to member mapping
+        corpkey_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'team_name': team_name,  # Store the Team column name for display
+                    'tenure': tenure,
+                    'cases': []
+                }
+
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey with circle filtering (with row index)
+        for row_idx, row in breached_df.iterrows():
+            user_id = str(row[user_id_col]).strip()
+            if user_id and user_id.lower() != 'nan':
+                # Check if case matches the selected circle filter
+                case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                if selected_circle is None or case_circle == selected_circle:
+                    if user_id in corpkey_to_member:
+                        corpkey_to_member[user_id]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
+
+        # Access the Breached Cases sheet
+        if "Breached Cases" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'Breached Cases' sheet")
+
+        ws = wb["Breached Cases"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        total_cases_written = 0
+
+        print(f"=== PROCESSING BREACHED CASES ===")
+
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            # Write ALL cases to QCL - Breached Cases sheet (no sampling)
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[number_col]
+                location, recognized, raw_location = format_location(case[country_code_col])
+
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
+                ws[f"D{current_row}"].value = location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
+                ws[f"F{current_row}"].value = case_number
+                ws[f"G{current_row}"].value = case[hr_service_col]
+                ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
+                ws[f"J{current_row}"].value = case[breach_reason_col]  # Column J for Breach Reason
+
+                # To make sure that the new column is written into the Breached sheet in the QCL column, follow this format:
+                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
+
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if recognized is True:
+                    print(f"Breached Cases {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}/Breached Cases")
+                elif recognized is False:
+                    if log_func:
+                        log_func(f"Breached Cases {control_no}: Case {case_number} has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/Breached Cases.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"Breached Cases {control_no}: Case {case_number} has a blank location. Taken from row {raw_row_num} in {raw_file_name}/Breached Cases.")
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        if log_func:
+            log_func(f"Breached Cases completed: {total_cases_written} cases written.\n")
+
+        return control_no, total_cases_written
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - Breached Cases: {str(e)}")
+
+def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, selected_circle=None, log_func=None, is_katowice=False):
+
+    # Process QA Reviews - CSATs sheet
+    # selected_circle: None for all circles, or 1-6 for specific circle
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
+
+    try:
+        # Read the "CSATs" sheet from QA Review file
+        csats_df = pd.read_excel(qa_review_file, sheet_name="CSATs")
+
+        # Find required columns in CSATs sheet
+        def find_column_containing(df, search_terms):
+            """Find column that contains any of the search terms (case-insensitive)"""
+            for col in df.columns:
+                col_lower = str(col).strip().lower()
+                for term in search_terms:
+                    # Check if the term is in the column name (handles both bracket and non-bracket formats)
+                    if f"[{term.strip().lower()}]" in col_lower or term.strip().lower() in col_lower:
+                        return col
+            raise ValueError(f"Missing required column containing: {search_terms}")
+
+        # Column mapping for CSATs:
+        raw_team_col = find_column_containing(csats_df, ["team"])  # Column H -> QCL Column C (assignment group for circle filtering)
+        country_code_col = find_column_containing(csats_df, ["subject person country code"])  # Column G -> QCL Column D
+        agent_col = find_column_containing(csats_df, ["agent"])  # Column I (full name with corpkey) -> QCL Column E
+        csat_id_col = find_column_containing(csats_df, ["csat id"])  # Column B -> QCL Column F
+        case_number_col = find_column_containing(csats_df, ["case number"])  # Column D -> QCL Column G
+        hrservice_col = find_column_containing(csats_df, ["hr service"])  # Column Q -> QCL Column H
+        csat_score_col = find_column_containing(csats_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
+        comments_col = find_column_containing(csats_df, ["commments"])  # Column F -> QCL Column K [RENZO NOTE: FOR SOME REASON, COLUMN F HAS 3 Ms IN COMMENTS IN THE RAW FILE. THIS IS NOT A TYPO ??????]
+
+        # When adding a column in CSATS, please make sure to follow this format:
+        # NEWCSATSCOLUMNNAMEHERE_col = find_column_containing(csats_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build corpkey to member mapping (same as QA Checks)
+        corpkey_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'team_name': team_name,  # Store the Team column name for display
+                    'tenure': tenure,
+                    'cases': []
+                }
+
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey with circle filtering (with row index)
+        for row_idx, row in csats_df.iterrows():
+            agent_name = str(row[agent_col]).strip()
+            if agent_name and agent_name.lower() != 'nan':
+                # Check if case matches the selected circle filter
+                case_circle = get_circle_from_assignment_group(row[raw_team_col])
+                if selected_circle is None or case_circle == selected_circle:
+                    # Extract corpkey from agent field (same as QA Checks with "Assigned to")
+                    corpkey = extract_corpkey_from_name(agent_name)
+                    if corpkey and corpkey in corpkey_to_member:
+                        corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
+
+        # Access the CSATs sheet
+        if "CSAT" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'CSAT' sheet")
+
+        ws = wb["CSAT"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        total_cases_written = 0
+
+        print(f"=== PROCESSING CSAT ===")
+
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            # Write ALL cases to QCL - CSATs sheet (no sampling)
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[case_number_col]
+                csat_id = case[csat_id_col]
+                location, recognized, raw_location = format_location(case[country_code_col])
+
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
+                ws[f"D{current_row}"].value = location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
+                ws[f"F{current_row}"].value = csat_id  # CSAT ID
+                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
+                ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
+                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
+                ws[f"K{current_row}"].value = case[comments_col]  # Comment
+                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
+
+                # To make sure that the new column is written into the CSATs sheet in the QCL column, follow this format:
+                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
+
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if recognized is True:
+                    print(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSATs")
+                elif recognized is False:
+                    if log_func:
+                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/CSATs.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"CSAT {control_no}: Case {case_number} (CSAT ID: {csat_id}) has a blank location. Taken from row {raw_row_num} in {raw_file_name}/CSATs.")
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        if log_func:
+            log_func(f"CSAT completed: {total_cases_written} cases written.\n")
+
+        return control_no, total_cases_written
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - CSATs: {str(e)}")
+
+def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_start, selected_circle_text="All Circles", log_func=None, is_katowice=False):
+
+    # Process QA Reviews - CSAT Chat sheet
+    # Only processes if All Circles or Circle 6 (Contact Center) is selected
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
+
+    # CSAT Chat is exclusive to Circle 6 Contact Center - skip if another circle is selected
+    if selected_circle_text != "All Circles" and selected_circle_text != "Circle 6 (Contact Center)":
+        print("CSAT Chat: Skipped (only applicable for Circle 6 Contact Center).")
+        return control_no_start, 0
+
+    try:
+        # Check if "CSAT Chat" sheet exists in the QA Review file
+        xls = pd.ExcelFile(qa_review_file)
+        if "CSAT Chat" not in xls.sheet_names:
+            if log_func:
+                log_func("CSAT Chat: No 'CSAT Chat' sheet found in the QA Reviews file.")
+            return control_no_start, 0
+
+        # Read the "CSAT Chat" sheet from QA Review file
+        csat_chat_df = pd.read_excel(qa_review_file, sheet_name="CSAT Chat")
+
+        # Check if the sheet has any data
+        if csat_chat_df.empty:
+            if log_func:
+                log_func("CSAT Chat: No data found in the 'CSAT Chat' sheet.")
+            return control_no_start, 0
+
+        # Find required columns in CSAT Chat sheet
+        def find_column_containing(df, search_terms):
+            """Find column that contains any of the search terms (case-insensitive)"""
+            for col in df.columns:
+                col_lower = str(col).strip().lower()
+                for term in search_terms:
+                    if f"[{term.strip().lower()}]" in col_lower or term.strip().lower() in col_lower:
+                        return col
+            raise ValueError(f"Missing required column containing: {search_terms}")
+
+        # Column mapping for CSAT Chat:
+        raw_team_col = find_column_containing(csat_chat_df, ["team"])  # Column H -> QCL Column C
+        country_code_col = find_column_containing(csat_chat_df, ["subject person country code"])  # Column G -> QCL Column D
+        agent_col = find_column_containing(csat_chat_df, ["agent"])  # Column I -> QCL Column E
+        csat_id_col = find_column_containing(csat_chat_df, ["csat id"])  # Column B -> QCL Column F
+        case_number_col = find_column_containing(csat_chat_df, ["case number"])  # Column D -> QCL Column G
+        hrservice_col = find_column_containing(csat_chat_df, ["hr service"])  # Column P -> QCL Column H
+        csat_score_col = find_column_containing(csat_chat_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
+        comments_col = find_column_containing(csat_chat_df, ["commments"])  # Column F -> QCL Column K # Column F -> QCL Column K [RENZO NOTE: FOR SOME REASON, COLUMN F HAS 3 Ms IN COMMENTS IN THE RAW FILE. THIS IS NOT A TYPO ??????]
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build corpkey to member mapping
+        corpkey_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'team_name': team_name,
+                    'tenure': tenure,
+                    'cases': []
+                }
+
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey (with row index)
+        # No circle filtering on individual cases — the entire sheet is Circle 6 only
+        for row_idx, row in csat_chat_df.iterrows():
+            agent_name = str(row[agent_col]).strip()
+            if agent_name and agent_name.lower() != 'nan':
+                corpkey = extract_corpkey_from_name(agent_name)
+                if corpkey and corpkey in corpkey_to_member:
+                    corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
+
+        # Access the CSAT Chat sheet in QCL
+        if "CSAT Chat" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'CSAT Chat' sheet")
+
+        ws = wb["CSAT Chat"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        total_cases_written = 0
+
+        print(f"=== PROCESSING CSAT CHAT ===")
+
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            # Write ALL cases to QCL - CSAT Chat sheet (no sampling)
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[case_number_col]
+                csat_id = case[csat_id_col]
+                location, recognized, raw_location = format_location(case[country_code_col])
+
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
+                ws[f"D{current_row}"].value = location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
+                ws[f"F{current_row}"].value = csat_id  # CSAT ID
+                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
+                ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
+                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
+                ws[f"K{current_row}"].value = case[comments_col]  # Comment
+                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
+
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if recognized is True:
+                    print(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/CSAT Chat")
+                elif recognized is False:
+                    if log_func:
+                        log_func(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/CSAT Chat.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"CSAT Chat {control_no}: Case {case_number} (CSAT ID: {csat_id}) has a blank location. Taken from row {raw_row_num} in {raw_file_name}/CSAT Chat.")
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        if log_func:
+            log_func(f"CSAT Chat completed: {total_cases_written} cases written.\n")
+
+        return control_no, total_cases_written
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - CSAT Chat: {str(e)}")
+
+def process_qa_reviews_live_chat_fcr(qa_review_file, member_file, wb, control_no_start, selected_circle_text="All Circles", log_func=None, is_katowice=False):
+
+    # Process QA Reviews - Live Chat FCR sheet
+    # Only processes if All Circles or Circle 6 (Contact Center) is selected
+    # log_func: Function to log messages to console
+    # Returns: (next_control_no, total_cases_written)
+
+    # Live Chat FCR is exclusive to Circle 6 Contact Center - skip if another circle is selected
+    if selected_circle_text != "All Circles" and selected_circle_text != "Circle 6 (Contact Center)":
+        print("Live Chat FCR: Skipped (only applicable for Circle 6 Contact Center).")
+        return control_no_start, 0
+
+    try:
+        # Check if "Live Chat FCR" sheet exists in the QA Review file
+        xls = pd.ExcelFile(qa_review_file)
+        if "Live Chat FCR" not in xls.sheet_names:
+            if log_func:
+                log_func("Live Chat FCR: Sheet not found in QA Reviews file. Skipping.")
+            return control_no_start, 0
+
+        # Detect header row and read the Live Chat FCR sheet
+        header_row = detect_header_row(
+            qa_review_file,
+            sheet_name="Live Chat FCR",
+            required_columns=["Team", "Agent", "Case Number"]
+        )
+        live_chat_fcr_df = pd.read_excel(qa_review_file, sheet_name="Live Chat FCR", header=header_row)
+
+        # Check if sheet has data
+        if live_chat_fcr_df.empty:
+            if log_func:
+                log_func("Live Chat FCR: Sheet is empty. Skipping.")
+            return control_no_start, 0
+
+        # Helper function for bracket-aware column search
+        def find_column_containing(df, search_terms):
+            for col in df.columns:
+                col_check = str(col).strip().lower()
+                # Check for bracket format like "F09 - SNOW HR Cases[Column Name]"
+                if "[" in col_check and "]" in col_check:
+                    bracket_content = col_check[col_check.index("[") + 1:col_check.index("]")]
+                    for term in search_terms:
+                        if term.lower() == bracket_content:
+                            return col
+                for term in search_terms:
+                    if term.lower() == col_check:
+                        return col
+            raise ValueError(f"Could not find column matching any of {search_terms} in Live Chat FCR sheet")
+
+        # Column mappings from raw file
+        raw_team_col = find_column_containing(live_chat_fcr_df, ["team"])
+        country_code_col = find_column_containing(live_chat_fcr_df, ["subject person country code"])
+        agent_col = find_column_containing(live_chat_fcr_df, ["agent"])
+        csat_id_col = find_column_containing(live_chat_fcr_df, ["csat id"])
+        case_number_col = find_column_containing(live_chat_fcr_df, ["case number"])
+        hrservice_col = find_column_containing(live_chat_fcr_df, ["hr service"])
+        comments_col = find_column_containing(live_chat_fcr_df, ["commments"])  # 3 Ms in raw file
+        fcr_col = find_column_containing(live_chat_fcr_df, ["fcr"])
+
+        # Read member list file
+        member_header_row = detect_header_row(
+            member_file,
+            required_columns=["Team", "Tenure"]
+        )
+        members_df = pd.read_excel(member_file, header=member_header_row)
+
+        # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
+        formatted_name_col = None
+        for col in members_df.columns:
+            sample_values = members_df[col].dropna().astype(str).head(5)
+            if any(" - " in val for val in sample_values):
+                formatted_name_col = col
+                break
+
+        member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
+        team_col = find_column(members_df, ["Team"])
+        tenure_col = find_column(members_df, ["Tenure"])
+
+        # Build corpkey to member mapping
+        corpkey_to_member = {}
+        for _, member in members_df.iterrows():
+            member_name_raw = str(member[member_name_col]).strip()
+            team_name = str(member[team_col]).strip()
+            tenure = member[tenure_col]
+
+            if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                continue
+
+            corpkey = extract_corpkey_from_name(member_name_raw)
+            if corpkey:
+                corpkey_to_member[corpkey] = {
+                    'name': member_name_raw,
+                    'team_name': team_name,
+                    'tenure': tenure,
+                    'cases': []
+                }
+
+        # Get raw file name for logging
+        raw_file_name = os.path.basename(qa_review_file)
+
+        # Build dictionary of cases per corpkey (no per-case circle filtering — entire sheet is Circle 6 Contact Center)
+        for row_idx, row in live_chat_fcr_df.iterrows():
+            agent_name = str(row[agent_col]).strip()
+            if agent_name and agent_name.lower() != 'nan':
+                corpkey = extract_corpkey_from_name(agent_name)
+                if corpkey and corpkey in corpkey_to_member:
+                    corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
+
+        # Access the Live Chat FCR sheet in QCL
+        if "Live Chat FCR" not in wb.sheetnames:
+            raise ValueError("QCL template does not contain 'Live Chat FCR' sheet")
+
+        ws = wb["Live Chat FCR"]
+        current_row = find_qcl_start_row(ws, search_column="B", search_text="control check no.")
+        control_no = control_no_start
+
+        # Track statistics
+        total_cases_written = 0
+
+        print(f"=== PROCESSING LIVE CHAT FCR ===")
+
+        # Process each member with cases
+        for corpkey, member_data in corpkey_to_member.items():
+            cases = member_data['cases']
+
+            if len(cases) == 0:
+                continue
+
+            # Write ALL cases to QCL - Live Chat FCR sheet (no sampling)
+            for case_data in cases:
+                case = case_data['row']
+                raw_row_num = case_data['raw_row_num']
+                case_number = case[case_number_col]
+                csat_id = case[csat_id_col]
+                location, recognized, raw_location = format_location(case[country_code_col])
+
+                ws[f"B{current_row}"].value = control_no
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
+                ws[f"D{current_row}"].value = location  # Country
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
+                ws[f"F{current_row}"].value = csat_id  # CSAT ID
+                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
+                ws[f"I{current_row}"].value = case[comments_col]  # Comment
+                ws[f"J{current_row}"].value = case[fcr_col]  # FCR
+
+                # Log statistics to terminal, unprocessed notices to GUI console
+                if recognized is True:
+                    print(f"Live Chat FCR {control_no}: Case {case_number} (CSAT ID: {csat_id}) from {location} was taken from row {raw_row_num} in {raw_file_name}/Live Chat FCR")
+                elif recognized is False:
+                    if log_func:
+                        log_func(f"Live Chat FCR {control_no}: Case {case_number} (CSAT ID: {csat_id}) has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}/Live Chat FCR.")
+                else:  # recognized is None (blank)
+                    if log_func:
+                        log_func(f"Live Chat FCR {control_no}: Case {case_number} (CSAT ID: {csat_id}) has a blank location. Taken from row {raw_row_num} in {raw_file_name}/Live Chat FCR.")
+
+                control_no += 1
+                current_row += 1
+                total_cases_written += 1
+
+        if log_func:
+            log_func(f"Live Chat FCR completed: {total_cases_written} cases written.\n")
+
+        return control_no, total_cases_written
+
+    except Exception as e:
+        raise Exception(f"Error processing QA Reviews - Live Chat FCR: {str(e)}")
 
 def process_files():
     raw_file = qa_checks_entry.get()
     qa_review_file = qa_review_entry.get()
     qcl_template = qcl_entry.get()
     member_file = member_entry.get()
+    selected_circle_text = circle_var.get()
 
-    if not raw_file or not member_file or not qcl_template:
-        messagebox.showerror("Error", "Please select all required files.")
+    # Require Member List and QCL Template
+    if not member_file or not qcl_template:
+        messagebox.showerror("Error", "Please select Member List and QCL Template files.")
         return
+
+    # Require at least one raw data file (QA Checks or QA Reviews)
+    if not raw_file and not qa_review_file:
+        messagebox.showerror("Error", "Please select at least one raw data file (QA Checks or QA Reviews).")
+        return
+
+    # Parse the selected circle
+    selected_circle = parse_circle_selection(selected_circle_text)
+    is_katowice = is_katowice_selection(selected_circle_text)
+
+    # Build filter display message
+    if is_katowice:
+        circle_filter_msg = selected_circle_text
+    elif selected_circle:
+        circle_filter_msg = f"Circle {selected_circle}"
+    else:
+        circle_filter_msg = "All Circles"
+
+    # Validate Katowice selection against member list
+    if is_katowice and member_file:
+        try:
+            member_preview = pd.read_excel(member_file, nrows=0)
+            has_ktw = any("ktw support" in str(col).strip().lower() for col in member_preview.columns)
+            if not has_ktw:
+                messagebox.showerror("Error", "Katowice option selected but the Member List does not contain a 'KTW Support' column.")
+                return
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not read Member List to validate Katowice support: {str(e)}")
+            return
+
+    # Clear console and start logging
+    clear_console()
+    print(f"\n========== PROCESSING WITH FILTER: {circle_filter_msg} ==========")
 
     try:
         # Copy template and preserve all features first
@@ -597,7 +1914,11 @@ def process_files():
 
         # Initialize statistics
         qa_checks_stats = None
-        qa_reviews_stats = None
+        qa_reviews_reopened_stats = None
+        qa_reviews_breached_stats = None
+        qa_reviews_csats_stats = None
+        qa_reviews_csat_chat_stats = None
+        qa_reviews_live_chat_fcr_stats = None
 
         # ========== PROCESS QA CHECKS ==========
         if raw_file:
@@ -610,155 +1931,245 @@ def process_files():
             case_id_col = find_column(raw_df, ["Number"])
             service_col = find_column(raw_df, ["HR Service"])
             assignment_group_col = find_column(raw_df, ["Assignment group"])
+            opened_for_col = find_column(raw_df, ["Opened for", "Opened For"])
 
             # Read member list file
             member_header_row = detect_header_row(
                 member_file,
-                required_columns=["Team", "Tenure"]
+                required_columns=["Team"]
             )
             members_df = pd.read_excel(member_file, header=member_header_row)
 
-            # Try to find the formatted name column (column G with formula)
+            # Find formatted name column (with corp key) and Team column (LastName, FirstName format)
             formatted_name_col = None
-            try:
-                # Look for a column that contains " - " pattern (name with corpkey)
-                for col in members_df.columns:
-                    sample_values = members_df[col].dropna().astype(str).head(5)
-                    if any(" - " in val for val in sample_values):
-                        formatted_name_col = col
-                        print(f"Found formatted name column: {col}")
-                        break
-            except:
-                pass
+            for col in members_df.columns:
+                sample_values = members_df[col].dropna().astype(str).head(5)
+                if any(" - " in val for val in sample_values):
+                    formatted_name_col = col
+                    break
 
-            # Fallback to Team column if formatted column not found
             member_name_col = formatted_name_col if formatted_name_col else find_column(members_df, ["Team"])
-            tenure_col = find_column(members_df, ["Tenure"])
+            team_col = find_column(members_df, ["Team"])  # Column A with "LastName, FirstName" format
 
-            # Build dictionary of cases per employee
-            # Use the raw "FirstName LastName - CorpKey" format from both files
-            employee_cases = {}
-            for _, row in raw_df.iterrows():
+            # Build corpkey to member mapping
+            corpkey_to_member = {}
+            for _, member in members_df.iterrows():
+                member_name_raw = str(member[member_name_col]).strip()
+                team_name = str(member[team_col]).strip()  # Get the "LastName, FirstName" format
+
+                if not member_name_raw or member_name_raw.lower() == 'nan':
+                    continue
+
+                corpkey = extract_corpkey_from_name(member_name_raw)
+                if corpkey:
+                    corpkey_to_member[corpkey] = {
+                        'name': member_name_raw,
+                        'team_name': team_name,  # Store the Team column name for display
+                        'cases': []
+                    }
+
+            # Get raw file name for logging
+            raw_file_name = os.path.basename(raw_file)
+
+            # Build dictionary of cases per corpkey (with row index for logging)
+            for row_idx, row in raw_df.iterrows():
                 assigned_to = str(row[assigned_col]).strip()
                 if assigned_to and assigned_to.lower() != 'nan':
-                    # Store with the raw format (no normalization needed!)
-                    employee_cases.setdefault(assigned_to, []).append(row)
+                    # Check if case matches the selected circle filter
+                    case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                    if selected_circle is None or case_circle == selected_circle:
+                        # Extract corpkey from assigned_to field
+                        corpkey = extract_corpkey_from_name(assigned_to)
+                        if corpkey and corpkey in corpkey_to_member:
+                            # Store row with its index (add 2 for Excel row: 1 for header, 1 for 0-index)
+                            corpkey_to_member[corpkey]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
-            # DEBUGGING: Print matching statistics
-            print(f"\n=== MATCHING STATISTICS ===")
-            print(f"Total cases in raw file: {len(raw_df)}")
-            print(f"Unique agents with cases: {len(employee_cases)}")
-            print(f"Total agents in member list: {len(members_df)}")
+            print(f"=== PROCESSING QA CHECKS ===")
 
             ws = wb["QA Checks"]
             current_row = find_qcl_start_row(ws)
             control_no = 1
 
             # Track processing statistics
-            matched_agents = 0
             total_cases_written = 0
-            unmatched_agents = []
 
-            # Process each member
-            for _, member in members_df.iterrows():
-                member_name_raw = str(member[member_name_col]).strip()
-                tenure = member[tenure_col]
+            # Process each member with cases
+            for corpkey, member_data in corpkey_to_member.items():
+                cases = member_data['cases']
 
-                # Skip if no valid name or tenure
-                if not member_name_raw or member_name_raw.lower() == 'nan' or pd.isna(tenure):
+                if len(cases) == 0:
                     continue
 
-                # Use the raw formatted name directly (no normalization!)
-                member_name = member_name_raw
-
-                # Check if this member has cases
-                if member_name not in employee_cases:
-                    unmatched_agents.append(member_name)
-                    continue
-
-                matched_agents += 1
-                cases = employee_cases[member_name]
-
-                # Calculate sample size based on tenure
-                sample_size = max(1, math.ceil(len(cases) * calculate_sample_percentage(tenure)))
-                sampled_cases = random.sample(cases, min(sample_size, len(cases)))
-
-                print(f"Agent: {member_name} | Tenure: {tenure} | Total Cases: {len(cases)} | Sample: {len(sampled_cases)}")
+                # Fixed cap of 15 cases per agent; randomize only if agent has more than 15
+                if len(cases) > 15:
+                    sampled_cases = random.sample(cases, 15)
+                else:
+                    sampled_cases = cases
 
                 # Write sampled cases to QCL
-                for case in sampled_cases:
+                for case_data in sampled_cases:
+                    case = case_data['row']
+                    raw_row_num = case_data['raw_row_num']
+                    case_number = case[case_id_col]
+                    location, recognized, raw_location = get_case_location(case[location_col], case[opened_for_col])
+
                     ws[f"B{current_row}"].value = control_no
-                    ws[f"C{current_row}"].value = format_assignment_group(case[assignment_group_col])
-                    ws[f"D{current_row}"].value = format_location(case[location_col])
-                    ws[f"E{current_row}"].value = normalize_raw_name(case[assigned_col])
-                    ws[f"F{current_row}"].value = case[case_id_col]
+                    ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
+                    ws[f"D{current_row}"].value = location
+                    ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
+                    ws[f"F{current_row}"].value = case_number
                     ws[f"G{current_row}"].value = case[service_col]
+
+                    # Log statistics to terminal, unprocessed notices to GUI console
+                    if recognized is True:
+                        print(f"QA Checks {control_no}: Case {case_number} from {location} was taken from row {raw_row_num} in {raw_file_name}")
+                    elif recognized is False:
+                        log_to_console(f"QA Checks {control_no}: Case {case_number} has an unrecognized location code '{raw_location}'. Taken from row {raw_row_num} in {raw_file_name}.")
+                    else:  # recognized is None (blank)
+                        log_to_console(f"QA Checks {control_no}: Case {case_number} has a blank location. Taken from row {raw_row_num} in {raw_file_name}.")
+
                     control_no += 1
                     current_row += 1
                     total_cases_written += 1
 
-            # Print final statistics
-            print(f"\n=== QA CHECKS FINAL RESULTS ===")
-            print(f"Matched agents: {matched_agents}")
-            print(f"Total cases written: {total_cases_written}")
-            print(f"Unmatched agents: {len(unmatched_agents)}")
-            if unmatched_agents[:5]:  # Show first 5 unmatched
-                print(f"Sample unmatched: {unmatched_agents[:5]}")
+            log_to_console(f"QA Checks completed: {total_cases_written} cases written.\n")
 
             qa_checks_stats = {
-                'matched': matched_agents,
-                'cases': total_cases_written,
-                'unmatched': len(unmatched_agents)
+                'cases': total_cases_written
             }
 
         # ========== PROCESS QA REVIEWS - REOPENED CASES ==========
         if qa_review_file:
-            print("\n========== PROCESSING QA REVIEWS - REOPENED CASES ==========")
-
             try:
                 control_no_start = 1  # Start from 1 for QA Reviews
-                _, cases_written, matched, unmatched_list = process_qa_reviews_reopened_cases(
+                _, cases_written = process_qa_reviews_reopened_cases(
                     qa_review_file,
                     member_file,
                     wb,
-                    control_no_start
+                    control_no_start,
+                    selected_circle,
+                    log_to_console,
+                    is_katowice
                 )
 
-                print(f"\n=== QA REVIEWS FINAL RESULTS ===")
-                print(f"Matched agents: {matched}")
-                print(f"Total cases written: {cases_written}")
-                print(f"Unmatched agents: {len(unmatched_list)}")
-                if unmatched_list[:5]:
-                    print(f"Sample unmatched: {unmatched_list[:5]}")
-
-                qa_reviews_stats = {
-                    'matched': matched,
-                    'cases': cases_written,
-                    'unmatched': len(unmatched_list)
+                qa_reviews_reopened_stats = {
+                    'cases': cases_written
                 }
             except Exception as e:
-                print(f"Warning: Could not process QA Reviews - {str(e)}")
-                qa_reviews_stats = None
+                log_to_console(f"Warning: Could not process QA Reviews - Reopened Cases - {str(e)}")
+                qa_reviews_reopened_stats = None
+
+        # ========== PROCESS QA REVIEWS - BREACHED CASES ==========
+        if qa_review_file:
+            try:
+                control_no_start = 1  # Start from 1 for Breached Cases
+                _, cases_written = process_qa_reviews_breached_cases(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start,
+                    selected_circle,
+                    log_to_console,
+                    is_katowice
+                )
+
+                qa_reviews_breached_stats = {
+                    'cases': cases_written
+                }
+            except Exception as e:
+                log_to_console(f"Warning: Could not process QA Reviews - Breached Cases - {str(e)}")
+                qa_reviews_breached_stats = None
+
+        # ========== PROCESS QA REVIEWS - CSATS ==========
+        if qa_review_file:
+            try:
+                control_no_start = 1  # Start from 1 for CSATs
+                _, cases_written = process_qa_reviews_csats(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start,
+                    selected_circle,
+                    log_to_console,
+                    is_katowice
+                )
+
+                qa_reviews_csats_stats = {
+                    'cases': cases_written
+                }
+            except Exception as e:
+                log_to_console(f"Warning: Could not process QA Reviews - CSATs - {str(e)}")
+                qa_reviews_csats_stats = None
+
+        # ========== PROCESS QA REVIEWS - CSAT CHAT ==========
+        if qa_review_file:
+            try:
+                control_no_start = 1  # Start from 1 for CSAT Chat
+                _, cases_written = process_qa_reviews_csat_chat(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start,
+                    selected_circle_text,
+                    log_to_console,
+                    is_katowice
+                )
+
+                qa_reviews_csat_chat_stats = {
+                    'cases': cases_written
+                }
+            except Exception as e:
+                log_to_console(f"Warning: Could not process QA Reviews - CSAT Chat - {str(e)}")
+                qa_reviews_csat_chat_stats = None
+
+        # ========== PROCESS QA REVIEWS - LIVE CHAT FCR ==========
+        if qa_review_file:
+            try:
+                control_no_start = 1
+                _, cases_written = process_qa_reviews_live_chat_fcr(
+                    qa_review_file,
+                    member_file,
+                    wb,
+                    control_no_start,
+                    selected_circle_text,
+                    log_to_console,
+                    is_katowice
+                )
+
+                qa_reviews_live_chat_fcr_stats = {
+                    'cases': cases_written
+                }
+            except Exception as e:
+                log_to_console(f"Warning: Could not process QA Reviews - Live Chat FCR - {str(e)}")
+                qa_reviews_live_chat_fcr_stats = None
 
         # Save workbook
         wb.save(output_path)
         wb.close()
 
         # Build success message
+        print("=== PROCESSING COMPLETE ===")
+
         success_msg = "QCL generated successfully!\n\n"
         success_msg += f"Output: {output_path}\n\n"
 
         if qa_checks_stats:
-            success_msg += "=== QA CHECKS ===\n"
-            success_msg += f"Matched agents: {qa_checks_stats['matched']}\n"
-            success_msg += f"Cases written: {qa_checks_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_checks_stats['unmatched']}\n\n"
+            success_msg += f"QA Checks: {qa_checks_stats['cases']} cases written\n"
 
-        if qa_reviews_stats:
-            success_msg += "=== QA REVIEWS (Reopened Cases) ===\n"
-            success_msg += f"Matched agents: {qa_reviews_stats['matched']}\n"
-            success_msg += f"Cases written: {qa_reviews_stats['cases']}\n"
-            success_msg += f"Unmatched agents: {qa_reviews_stats['unmatched']}"
+        if qa_reviews_reopened_stats:
+            success_msg += f"Reopened Cases: {qa_reviews_reopened_stats['cases']} cases written\n"
+
+        if qa_reviews_breached_stats:
+            success_msg += f"Breached Cases: {qa_reviews_breached_stats['cases']} cases written\n"
+
+        if qa_reviews_csats_stats:
+            success_msg += f"CSAT: {qa_reviews_csats_stats['cases']} cases written\n"
+
+        if qa_reviews_csat_chat_stats:
+            success_msg += f"CSAT Chat: {qa_reviews_csat_chat_stats['cases']} cases written\n"
+
+        if qa_reviews_live_chat_fcr_stats:
+            success_msg += f"Live Chat FCR: {qa_reviews_live_chat_fcr_stats['cases']} cases written"
 
         messagebox.showinfo("Success", success_msg)
 
@@ -806,22 +2217,32 @@ def on_mousewheel(event):
 
 main_canvas.bind_all("<MouseWheel>", on_mousewheel)
 
-# Logo frame
-logo_frame = tk.Frame(scrollable_frame, bg="white", height=120)
-logo_frame.pack(fill=tk.X, padx=20, pady=(20, 15))
-logo_frame.pack_propagate(False)
+# Console frame
+console_label = tk.Label(scrollable_frame, text="Console:", font=("Arial", 12, "bold"),
+                         bg="#BFBFBF", fg="black")
+console_label.pack(anchor=tk.W, padx=20, pady=(10, 5))
 
-# Try to load logo image, fallback to text if not found
-logo_img = load_image("logo.png", width=200, height=80)
-if logo_img:
-    logo_label = tk.Label(logo_frame, image=logo_img, bg="white")
-    logo_label.image = logo_img  # Keep a reference
-    logo_label.pack(expand=True)
-else:
-    # Fallback to text logo
-    logo_label = tk.Label(logo_frame, text="A\nM", font=("Arial", 36, "bold"), 
-                          bg="white", fg="#FF6B35")
-    logo_label.pack(expand=True)
+console_frame = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID)
+console_frame.pack(fill=tk.X, padx=20, pady=(0, 15))
+
+console_text = scrolledtext.ScrolledText(console_frame, height=10, font=("Consolas", 9),
+                                          bg="#1e1e1e", fg="#d4d4d4", wrap=tk.WORD,
+                                          state=tk.DISABLED)
+console_text.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+
+def log_to_console(message):
+    """Log a message to the console text area"""
+    console_text.config(state=tk.NORMAL)
+    console_text.insert(tk.END, message + "\n")
+    console_text.see(tk.END)  # Auto-scroll to bottom
+    console_text.config(state=tk.DISABLED)
+    console_text.update()  # Force update to show message immediately
+
+def clear_console():
+    """Clear the console text area"""
+    console_text.config(state=tk.NORMAL)
+    console_text.delete(1.0, tk.END)
+    console_text.config(state=tk.DISABLED)
 
 # Circle Selection
 circle_label = tk.Label(scrollable_frame, text="1.", font=("Arial", 14, "bold"), 
@@ -832,17 +2253,24 @@ circle_frame = tk.Frame(scrollable_frame, bg="white", bd=2, relief=tk.SOLID, hig
                         highlightthickness=2)
 circle_frame.pack(fill=tk.X, padx=30, pady=5)
 
-circle_var = tk.StringVar(value="Circle 1 (HCM, OM)")
+circle_var = tk.StringVar(value="All Circles")
 circle_dropdown = tk.OptionMenu(
     circle_frame,
     circle_var,
+    "All Circles",
     "Circle 1 (HCM, OM)",
     "Circle 2 (Expense, Reporting, Travel)",
     "Circle 3 (Learning)",
     "Circle 4 (International Mobility)",
     "Circle 5 (Performance & Rewards)",
     "Circle 6 (Contact Center)",
-    "Circle 6 (Recruitment Admin)"
+    "Circle 6 (Recruitment Admin)",
+    "All Katowice",
+    "HCM - BE",
+    "HCM - NL",
+    "People Services - DE",
+    "People Services - NL",
+    "People Services - PL"
 )
 circle_dropdown.config(font=("Arial", 11), bg="white", fg="gray", 
                        relief=tk.FLAT, highlightthickness=0, width=35)
@@ -914,5 +2342,4 @@ automate_btn = tk.Button(scrollable_frame, text="AutoMate", font=("Arial", 14, "
                         bg="#FF6B35", fg="white", width=20, height=2,
                         relief=tk.FLAT, cursor="hand2", command=process_files)
 automate_btn.pack(pady=30)
-
 root.mainloop()
