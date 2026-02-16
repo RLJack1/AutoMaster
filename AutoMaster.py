@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 from PIL import Image, ImageTk
 import os
 import sys
+import re
 import warnings
 import shutil
 
@@ -907,21 +908,27 @@ def format_location(raw_location):
 def infer_location_from_opened_for(opened_for_value):
     """
     Infers location from 'Opened for' field by checking for guest account patterns
-    like "Guest XX - Guest.XX" where XX is a country code
-    Returns the country name if found, empty string otherwise
+    like "Guest XX - Guest.XX" where XX is a country code.
+    Only matches codes that appear as whole words to avoid false positives
+    (e.g. "GU" matching inside "Guest").
+    Returns the country name if found, empty string otherwise.
     """
     if pd.isna(opened_for_value):
         return ""
-    
+
     opened_for_str = str(opened_for_value).strip()
-    
+    opened_for_upper = opened_for_str.upper()
+
+    # Split the opened_for value into distinct tokens for exact word matching
+    # This handles patterns like "Guest NL - Guest.NL" by splitting on spaces, dots, and hyphens
+    tokens = set(re.split(r'[\s\.\-]+', opened_for_upper))
+
     # Check against all arbitrary codes in the country location map
     for country, rules in COUNTRY_LOCATION_MAP.items():
         for code in rules.get("arbitrary_codes", []):
-            # Check if the code appears in the opened_for field (case-insensitive)
-            if code.upper() in opened_for_str.upper():
+            if code.upper() in tokens:
                 return country
-    
+
     return ""
 
 def get_case_location(location_value, opened_for_value):
