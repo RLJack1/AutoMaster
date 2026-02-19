@@ -1167,9 +1167,17 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
         for row_idx, row in reopened_df.iterrows():
             user_id = str(row[user_id_col]).strip()
             if user_id and user_id.lower() != 'nan':
-                # Check if case matches the selected circle filter
-                case_circle = get_circle_from_assignment_group(row[assignment_group_col])
-                if selected_circle is None or case_circle == selected_circle:
+                # Check if case matches the selected circle/team filter
+                if is_katowice:
+                    if selected_circle == "All Katowice":
+                        include_case = True
+                    else:
+                        ktw_team = KATOWICE_TEAM_MAP.get(selected_circle, "").lower()
+                        include_case = ktw_team in str(row[assignment_group_col]).strip().lower()
+                else:
+                    case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                    include_case = selected_circle is None or case_circle == selected_circle
+                if include_case:
                     if user_id in corpkey_to_member:
                         corpkey_to_member[user_id]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
@@ -1312,9 +1320,17 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
         for row_idx, row in breached_df.iterrows():
             user_id = str(row[user_id_col]).strip()
             if user_id and user_id.lower() != 'nan':
-                # Check if case matches the selected circle filter
-                case_circle = get_circle_from_assignment_group(row[assignment_group_col])
-                if selected_circle is None or case_circle == selected_circle:
+                # Check if case matches the selected circle/team filter
+                if is_katowice:
+                    if selected_circle == "All Katowice":
+                        include_case = True
+                    else:
+                        ktw_team = KATOWICE_TEAM_MAP.get(selected_circle, "").lower()
+                        include_case = ktw_team in str(row[assignment_group_col]).strip().lower()
+                else:
+                    case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                    include_case = selected_circle is None or case_circle == selected_circle
+                if include_case:
                     if user_id in corpkey_to_member:
                         corpkey_to_member[user_id]['cases'].append({'row': row, 'raw_row_num': row_idx + 2})
 
@@ -1459,9 +1475,17 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
         for row_idx, row in csats_df.iterrows():
             agent_name = str(row[agent_col]).strip()
             if agent_name and agent_name.lower() != 'nan':
-                # Check if case matches the selected circle filter
-                case_circle = get_circle_from_assignment_group(row[raw_team_col])
-                if selected_circle is None or case_circle == selected_circle:
+                # Check if case matches the selected circle/team filter
+                if is_katowice:
+                    if selected_circle == "All Katowice":
+                        include_case = True
+                    else:
+                        ktw_team = KATOWICE_TEAM_MAP.get(selected_circle, "").lower()
+                        include_case = ktw_team in str(row[raw_team_col]).strip().lower()
+                else:
+                    case_circle = get_circle_from_assignment_group(row[raw_team_col])
+                    include_case = selected_circle is None or case_circle == selected_circle
+                if include_case:
                     # Extract corpkey from agent field (same as QA Checks with "Assigned to")
                     corpkey = extract_corpkey_from_name(agent_name)
                     if corpkey and corpkey in corpkey_to_member:
@@ -2100,9 +2124,17 @@ def process_files():
             for row_idx, row in raw_df.iterrows():
                 assigned_to = str(row[assigned_col]).strip()
                 if assigned_to and assigned_to.lower() != 'nan':
-                    # Check if case matches the selected circle filter
-                    case_circle = get_circle_from_assignment_group(row[assignment_group_col])
-                    if selected_circle is None or case_circle == selected_circle:
+                    # Check if case matches the selected circle/team filter
+                    if is_katowice:
+                        if selected_circle == "All Katowice":
+                            include_case = True
+                        else:
+                            ktw_team = KATOWICE_TEAM_MAP.get(selected_circle, "").lower()
+                            include_case = ktw_team in str(row[assignment_group_col]).strip().lower()
+                    else:
+                        case_circle = get_circle_from_assignment_group(row[assignment_group_col])
+                        include_case = selected_circle is None or case_circle == selected_circle
+                    if include_case:
                         # Extract corpkey from assigned_to field
                         corpkey = extract_corpkey_from_name(assigned_to)
                         if corpkey and corpkey in corpkey_to_member:
