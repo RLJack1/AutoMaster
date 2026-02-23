@@ -14,6 +14,160 @@ import shutil
 # Suppress openpyxl warnings for .xlsm files
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
+# =============================================================================
+# MAINTAINER'S CHEAT SHEET — HOW TO HANDLE QCL COLUMN CHANGES
+# =============================================================================
+#
+# AutoMaster reads data from:
+#   1. QA Review file  — Excel workbook with sheets: Reopened Cases, Breached
+#                        Cases, CSATs, CSAT Chat, Live Chat FCR, WD Breach
+#   2. Member List     — Excel workbook listing team members and corp keys
+#
+# It then writes data into the QCL template (the output Excel file).
+#
+# There are TWO separate column systems you may need to change:
+#   A) SOURCE columns  — columns READ from the QA Review file
+#   B) QCL OUTPUT columns — columns WRITTEN to the QCL template
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# PART A: SOURCE FILE COLUMNS (Reading from QA Review file)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Source columns are found by searching for a keyword in the column header.
+# The code uses this pattern:
+#
+#   some_col = find_column_containing(df, ["keyword"])
+#
+# Where:
+#   - "df" is the sheet being read (e.g., reopened_df, csats_df)
+#   - "keyword" is a partial match for the column header (case-insensitive)
+#     It also works for headers like "F09 - SNOW HR Cases[keyword]"
+#   - Multiple keywords can be listed as fallbacks: ["new name", "old name"]
+#
+#   TO RENAME A SOURCE COLUMN (header changed in the QA Review file):
+#     Find the matching find_column_containing(...) line and update the keyword.
+#     Example:
+#       BEFORE:  some_col = find_column_containing(df, ["old header name"])
+#       AFTER:   some_col = find_column_containing(df, ["new header name"])
+#     Tip: List both for backwards compatibility:
+#       some_col = find_column_containing(df, ["new header name", "old header name"])
+#
+#   TO ADD A NEW SOURCE COLUMN:
+#     Add a new line in the "Column mapping" block of the relevant function:
+#       new_col = find_column_containing(df, ["exact column header keyword"])
+#     Then also write it to the QCL output (see Part B below).
+#
+#   TO REMOVE A SOURCE COLUMN:
+#     Delete (or comment out) its find_column_containing(...) line.
+#     Also delete its matching ws[f"X{current_row}"].value = ... line (Part B).
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# PART B: QCL OUTPUT COLUMNS (Writing to the QCL template)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# QCL output columns are written using this pattern:
+#
+#   ws[f"X{current_row}"].value = variable
+#
+# Where:
+#   - "X" is the LETTER of the column in the QCL Excel sheet (A, B, C, ...)
+#   - "variable" holds the data to write into that cell
+#
+#   TO ADD A COLUMN to the QCL template:
+#     Add a new line in the writing block of the relevant function:
+#       ws[f"X{current_row}"].value = case[new_col]
+#     Replace "X" with the correct QCL column letter (e.g., "L" for column L).
+#     Make sure you also added the source column read (Part A) if needed.
+#
+#   TO REMOVE A COLUMN from the QCL template:
+#     Delete (or comment out) the ws[f"X{current_row}"].value = ... line.
+#     Also remove the source column read (Part A) if it is no longer used.
+#
+#   TO MOVE A COLUMN (column letter changed in the QCL template):
+#     Update the letter in the ws[f"X{current_row}"].value line.
+#     Example: if "Breach Reason" moves from column J to column K:
+#       BEFORE:  ws[f"J{current_row}"].value = case[breach_reason_col]
+#       AFTER:   ws[f"K{current_row}"].value = case[breach_reason_col]
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# SHEET REFERENCE — Which function handles which QCL sheet
+# ─────────────────────────────────────────────────────────────────────────────
+#
+#   QCL Sheet            Function                               Applicable To
+#   ────────────────     ─────────────────────────────────────  ─────────────
+#   Reopened Cases       process_qa_reviews_reopened_cases()    All circles
+#   Breached Cases       process_qa_reviews_breached_cases()    All circles
+#   CSAT                 process_qa_reviews_csats()             All circles
+#   CSAT Chat            process_qa_reviews_csat_chat()         Circle 6 only
+#   Live Chat FCR        process_qa_reviews_live_chat_fcr()     Circle 6 only
+#   WD Breached Cases    process_qa_reviews_wd_breach()         Katowice only
+#
+# Each function contains its own column map table and step-by-step notes
+# directly above the column reading and writing code blocks.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# PART C: CIRCLE AND TEAM MANAGEMENT
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Teams are mapped to Circles in two places in this file:
+#
+#   1. get_circle_from_assignment_group()  — the core mapping function
+#      Each elif block returns a circle number (1-6) based on keywords found
+#      in the "Assignment Group" column of the source file.
+#
+#   2. The circle dropdown in the GUI (near the bottom of this file)
+#      Lists the human-readable dropdown options shown to the user.
+#
+# Current Circle → Team mapping:
+#   Circle 1: Human Capital Management (HCM), Org Management
+#   Circle 2: Expense, Reporting
+#   Circle 3: Learning
+#   Circle 4: International Mobility
+#   Circle 5: Performance & Rewards, Travel
+#   Circle 6: Contact Center, Recruitment Admin
+#
+#   TO ADD A TEAM to an existing Circle:
+#     Step 1 — In get_circle_from_assignment_group(), find the elif block for
+#              the target circle and add the new team's keyword with "or":
+#                elif "existing team" in group_lower or "new team" in group_lower:
+#                    return X  (X = circle number)
+#     Step 2 — In format_assignment_group(), add a normalization rule if the
+#              raw team name needs to be displayed differently in the QCL:
+#                elif "new team" in group:
+#                    return "Formatted Team Name"
+#     Step 3 — Update the dropdown label for that circle in the GUI section
+#              (search for "circle_dropdown" near the bottom of this file).
+#
+#   TO REMOVE A TEAM from a Circle:
+#     Step 1 — In get_circle_from_assignment_group(), delete the team's keyword
+#              from its elif block (remove the "or 'team keyword' in group_lower"
+#              portion, or delete the whole elif if it was the only team).
+#     Step 2 — In format_assignment_group(), delete its normalization rule if present.
+#     Step 3 — Update the dropdown label for that circle in the GUI section.
+#
+#   TO RENAME A TEAM (keyword changed in source file):
+#     In get_circle_from_assignment_group(), update the old keyword string to
+#     the new one in the relevant elif block.
+#     In format_assignment_group(), update the matching condition and/or the
+#     return value if the displayed name also changes.
+#
+#   TO TRANSFER A TEAM between Circles (e.g., Travel moved from Circle 2 → 5):
+#     Step 1 — In get_circle_from_assignment_group(), remove the team's keyword
+#              from the old Circle's elif block and add it to the new Circle's block.
+#     Step 2 — Update both affected dropdown labels in the GUI section.
+#     Example (Travel, Circle 2 → Circle 5):
+#       BEFORE — Circle 2 block:  "expense" in group_lower or "travel" in group_lower or "reporting" in group_lower
+#       AFTER  — Circle 2 block:  "expense" in group_lower or "reporting" in group_lower
+#       AFTER  — Circle 5 block:  "performance" in group_lower or ... or "travel" in group_lower
+#
+#   TO ADD A NEW CIRCLE:
+#     Step 1 — Add a new elif block in get_circle_from_assignment_group() with
+#              the new circle number and its team keywords.
+#     Step 2 — Add normalization rules in format_assignment_group() as needed.
+#     Step 3 — Add the new circle as an option in the circle_dropdown in the GUI.
+#
+# =============================================================================
+
 # Dictionary containing the country codes for all available countries serviced by CPS
 COUNTRY_LOCATION_MAP = {
     "Albania": {
@@ -1016,10 +1170,10 @@ def get_circle_from_assignment_group(assignment_group):
 
     # Maps assignment group to circle number (1-6)
     # Circle 1: Human Capital Management and Org Management
-    # Circle 2: Expense, Travel, and Reporting
+    # Circle 2: Expense and Reporting
     # Circle 3: Learning
     # Circle 4: International Mobility
-    # Circle 5: Performance & Rewards
+    # Circle 5: Performance & Rewards and Travel
     # Circle 6: Contact Center and Recruitment Admin
 
     if pd.isna(assignment_group):
@@ -1030,8 +1184,8 @@ def get_circle_from_assignment_group(assignment_group):
     # Circle 1: HCM and Org Management
     if "human capital management" in group_lower or "hcm" in group_lower or "org management" in group_lower or "organizational management" in group_lower:
         return 1
-    # Circle 2: Expense, Travel, and Reporting
-    elif "expense" in group_lower or "travel" in group_lower or "reporting" in group_lower:
+    # Circle 2: Expense and Reporting
+    elif "expense" in group_lower or "reporting" in group_lower:
         return 2
     # Circle 3: Learning
     elif "learning" in group_lower:
@@ -1039,8 +1193,8 @@ def get_circle_from_assignment_group(assignment_group):
     # Circle 4: International Mobility
     elif "international mobility" in group_lower or "mobility" in group_lower:
         return 4
-    # Circle 5: Performance & Rewards
-    elif "performance" in group_lower or "rewards" in group_lower or "compensation" in group_lower or "benefits" in group_lower:
+    # Circle 5: Performance & Rewards and Travel
+    elif "performance" in group_lower or "rewards" in group_lower or "compensation" in group_lower or "benefits" in group_lower or "travel" in group_lower:
         return 5
     # Circle 6: Contact Center and Recruitment Admin
     elif "contact center" in group_lower or "people services" in group_lower or "recruitment admin" in group_lower:
@@ -1118,15 +1272,42 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                         return col
             raise ValueError(f"Missing required column containing: {search_terms}")
 
-        assignment_group_col = find_column_containing(reopened_df, ["assignment group"])  # Column D -> QCL Column C
-        country_code_col = find_column_containing(reopened_df, ["country code"])  # Column G -> QCL Column D
-        user_id_col = find_column_containing(reopened_df, ["user id"])  # Column L (corp key only) -> QCL Column E
-        number_col = find_column_containing(reopened_df, ["number"])  # Column E -> QCL Column F
-        hr_service_col = find_column_containing(reopened_df, ["hr service"])  # Column C -> QCL Column G
-        reopened_reason_col = find_column_containing(reopened_df, ["re-opened reason", "reopened reason"])  # Column AA -> QCL Column I
-
-        # When adding a column in Reopened Cases, please make sure to follow this format:
-        # NEWCOLUMNNAMEHERE_col = find_column_containing(reopened_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+        # ── COLUMN MAP: Reopened Cases ────────────────────────────────────────────
+        # SOURCE KEYWORD (in QA Review file)          QCL OUTPUT COLUMN
+        #   "assignment group"                     →  Column C  (Assignment Group)
+        #   "country code"                         →  Column D  (Location)
+        #   "user id"                              →  Column E  (Processor Name)
+        #   "number"                               →  Column F  (Reference Number)
+        #   "hr service"                           →  Column G  (HR Service)
+        #   "re-opened reason" / "reopened reason" →  Column I  (Reopened Reason)
+        #   Note: Column H is reserved in the QCL template — do not write to it.
+        #
+        # TO ADD A COLUMN:
+        #   Step 1 — Add a read line below:
+        #     new_col = find_column_containing(reopened_df, ["exact header keyword"])
+        #   Step 2 — Add a write line in the WRITING BLOCK further below:
+        #     ws[f"X{current_row}"].value = case[new_col]
+        #     (Replace "X" with the target QCL column letter, e.g. "J" for column J)
+        #
+        # TO REMOVE A COLUMN:
+        #   Step 1 — Delete (or comment out) its find_column_containing(...) line below.
+        #   Step 2 — Delete (or comment out) its ws[f"X{current_row}"].value = ... line
+        #            in the WRITING BLOCK further below.
+        #
+        # TO RENAME A SOURCE COLUMN (QA Review file header changed):
+        #   Update the keyword in find_column_containing(reopened_df, ["old name"])
+        #   to the new name. Tip: list both as fallbacks: ["new name", "old name"]
+        #
+        # TO MOVE A QCL COLUMN (column letter changed in QCL template):
+        #   In the WRITING BLOCK, change ws[f"OLD_LETTER{current_row}"]
+        #   to ws[f"NEW_LETTER{current_row}"]
+        # ─────────────────────────────────────────────────────────────────────────
+        assignment_group_col = find_column_containing(reopened_df, ["assignment group"])                    # → QCL Column C
+        country_code_col = find_column_containing(reopened_df, ["country code"])                            # → QCL Column D
+        user_id_col = find_column_containing(reopened_df, ["user id"])                                      # → QCL Column E
+        number_col = find_column_containing(reopened_df, ["number"])                                        # → QCL Column F
+        hr_service_col = find_column_containing(reopened_df, ["hr service"])                                # → QCL Column G
+        reopened_reason_col = find_column_containing(reopened_df, ["re-opened reason", "reopened reason"])  # → QCL Column I
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -1214,16 +1395,20 @@ def process_qa_reviews_reopened_cases(qa_review_file, member_file, wb, control_n
                 case_number = case[number_col]
                 location, recognized, raw_location = format_location(case[country_code_col])
 
-                ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
-                ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
-                ws[f"F{current_row}"].value = case_number
-                ws[f"G{current_row}"].value = case[hr_service_col]
-                ws[f"I{current_row}"].value = case[reopened_reason_col]  # Column I for Reopened Reason
-
-                # To make sure that the new column is written into the Reopened sheet in the QCL column, follow this format:
-                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
+                # ── WRITING BLOCK: Reopened Cases ────────────────────────────────────────
+                # Each line writes one value into the QCL. The letter (B, C, D...) is the
+                # column in the QCL Excel sheet. To add a new column here, add a new line
+                # following the same pattern and use the correct QCL column letter.
+                ws[f"B{current_row}"].value = control_no                                                                             # Col B: Control Check No. (auto-numbered)
+                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])  # Col C: Assignment Group
+                ws[f"D{current_row}"].value = location                                                                               # Col D: Location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']                       # Col E: Processor Name
+                ws[f"F{current_row}"].value = case_number                                                                            # Col F: Reference Number
+                ws[f"G{current_row}"].value = case[hr_service_col]                                                                   # Col G: HR Service
+                ws[f"I{current_row}"].value = case[reopened_reason_col]                                                              # Col I: Reopened Reason
+                # ── To add a column: ws[f"X{current_row}"].value = case[new_col]
+                #    (replace X with the QCL column letter, e.g. "J" for column J)
+                # ─────────────────────────────────────────────────────────────────────────
 
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
@@ -1269,17 +1454,44 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                         return col
             raise ValueError(f"Missing required column containing: {search_terms}")
 
-        # Column mapping for Breached Cases:
-        assignment_group_col = find_column_containing(breached_df, ["assignment group"])  # Column N -> QCL Column B
-        country_code_col = find_column_containing(breached_df, ["country code"])  # Column O -> QCL Column C
-        user_id_col = find_column_containing(breached_df, ["user id"])  # Column M (corp key only) -> QCL Column D
-        number_col = find_column_containing(breached_df, ["number"])  # Column C -> QCL Column E
-        hr_service_col = find_column_containing(breached_df, ["hr service"])  # Column D -> QCL Column F
-        resolution_type_col = find_column_containing(breached_df, ["resolution type"])  # Column E -> QCL Column G
-        breach_reason_col = find_column_containing(breached_df, ["sla breach reason"])  # Column AA -> QCL Column J
-
-        # When adding a column in Breached Cases, please make sure to follow this format:
-        # NEWBREACHEDCOLUMNNAMEHERE_col = find_column_containing(breached_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+        # ── COLUMN MAP: Breached Cases ────────────────────────────────────────────
+        # SOURCE KEYWORD (in QA Review file)    QCL OUTPUT COLUMN
+        #   "assignment group"              →  Column C  (Assignment Group)
+        #   "country code"                  →  Column D  (Location)
+        #   "user id"                       →  Column E  (Processor Name)
+        #   "number"                        →  Column F  (Reference Number)
+        #   "hr service"                    →  Column G  (HR Service)
+        #   "resolution type"               →  Column H  (SLA Breach Type)
+        #   "sla breach reason"             →  Column J  (Breach Reason)
+        #   Note: Column I is reserved in the QCL template — do not write to it.
+        #
+        # TO ADD A COLUMN:
+        #   Step 1 — Add a read line below:
+        #     new_col = find_column_containing(breached_df, ["exact header keyword"])
+        #   Step 2 — Add a write line in the WRITING BLOCK further below:
+        #     ws[f"X{current_row}"].value = case[new_col]
+        #     (Replace "X" with the target QCL column letter, e.g. "K" for column K)
+        #
+        # TO REMOVE A COLUMN:
+        #   Step 1 — Delete (or comment out) its find_column_containing(...) line below.
+        #   Step 2 — Delete (or comment out) its ws[f"X{current_row}"].value = ... line
+        #            in the WRITING BLOCK further below.
+        #
+        # TO RENAME A SOURCE COLUMN (QA Review file header changed):
+        #   Update the keyword in find_column_containing(breached_df, ["old name"])
+        #   to the new name. Tip: list both as fallbacks: ["new name", "old name"]
+        #
+        # TO MOVE A QCL COLUMN (column letter changed in QCL template):
+        #   In the WRITING BLOCK, change ws[f"OLD_LETTER{current_row}"]
+        #   to ws[f"NEW_LETTER{current_row}"]
+        # ─────────────────────────────────────────────────────────────────────────
+        assignment_group_col = find_column_containing(breached_df, ["assignment group"])  # → QCL Column C
+        country_code_col = find_column_containing(breached_df, ["country code"])          # → QCL Column D
+        user_id_col = find_column_containing(breached_df, ["user id"])                    # → QCL Column E
+        number_col = find_column_containing(breached_df, ["number"])                      # → QCL Column F
+        hr_service_col = find_column_containing(breached_df, ["hr service"])              # → QCL Column G
+        resolution_type_col = find_column_containing(breached_df, ["resolution type"])    # → QCL Column H
+        breach_reason_col = find_column_containing(breached_df, ["sla breach reason"])    # → QCL Column J
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -1367,17 +1579,21 @@ def process_qa_reviews_breached_cases(qa_review_file, member_file, wb, control_n
                 case_number = case[number_col]
                 location, recognized, raw_location = format_location(case[country_code_col])
 
-                ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
-                ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
-                ws[f"F{current_row}"].value = case_number
-                ws[f"G{current_row}"].value = case[hr_service_col]
-                ws[f"H{current_row}"].value = case[resolution_type_col]  # Column H for SLA Breach Type
-                ws[f"J{current_row}"].value = case[breach_reason_col]  # Column J for Breach Reason
-
-                # To make sure that the new column is written into the Breached sheet in the QCL column, follow this format:
-                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
+                # ── WRITING BLOCK: Breached Cases ────────────────────────────────────────
+                # Each line writes one value into the QCL. The letter (B, C, D...) is the
+                # column in the QCL Excel sheet. To add a new column here, add a new line
+                # following the same pattern and use the correct QCL column letter.
+                ws[f"B{current_row}"].value = control_no                                                                             # Col B: Control Check No. (auto-numbered)
+                ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])  # Col C: Assignment Group
+                ws[f"D{current_row}"].value = location                                                                               # Col D: Location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']                       # Col E: Processor Name
+                ws[f"F{current_row}"].value = case_number                                                                            # Col F: Reference Number
+                ws[f"G{current_row}"].value = case[hr_service_col]                                                                   # Col G: HR Service
+                ws[f"H{current_row}"].value = case[resolution_type_col]                                                              # Col H: SLA Breach Type
+                ws[f"J{current_row}"].value = case[breach_reason_col]                                                                # Col J: Breach Reason
+                # ── To add a column: ws[f"X{current_row}"].value = case[new_col]
+                #    (replace X with the QCL column letter, e.g. "K" for column K)
+                # ─────────────────────────────────────────────────────────────────────────
 
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
@@ -1423,18 +1639,50 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                         return col
             raise ValueError(f"Missing required column containing: {search_terms}")
 
-        # Column mapping for CSATs:
-        raw_team_col = find_column_containing(csats_df, ["team"])  # Column H -> QCL Column C (assignment group for circle filtering)
-        country_code_col = find_column_containing(csats_df, ["subject person country code"])  # Column G -> QCL Column D
-        agent_col = find_column_containing(csats_df, ["agent"])  # Column I (full name with corpkey) -> QCL Column E
-        csat_id_col = find_column_containing(csats_df, ["csat id"])  # Column B -> QCL Column F
-        case_number_col = find_column_containing(csats_df, ["case number"])  # Column D -> QCL Column G
-        hrservice_col = find_column_containing(csats_df, ["hr service"])  # Column Q -> QCL Column H
-        csat_score_col = find_column_containing(csats_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
-        comments_col = find_column_containing(csats_df, ["commments"])  # Column F -> QCL Column K [RENZO NOTE: FOR SOME REASON, COLUMN F HAS 3 Ms IN COMMENTS IN THE RAW FILE. THIS IS NOT A TYPO ??????]
-
-        # When adding a column in CSATS, please make sure to follow this format:
-        # NEWCSATSCOLUMNNAMEHERE_col = find_column_containing(csats_df, ["<INSERT EXACT NAME OF HEADER COLUMN HERE>"])
+        # ── COLUMN MAP: CSATs ─────────────────────────────────────────────────────
+        # SOURCE KEYWORD (in QA Review file)        QCL OUTPUT COLUMN
+        #   "team"                              →  Column C  (Assignment Group)
+        #   "subject person country code"       →  Column D  (Location)
+        #   "agent"                             →  Column E  (Processor Name)
+        #   "csat id"                           →  Column F  (CSAT ID)
+        #   "case number"                       →  Column G  (Reference Number)
+        #   "hr service"                        →  Column H  (HR Service)
+        #   "csatscore" / "csat score"          →  Column I  (CSAT Score)
+        #   [CSAT Type]                         →  Column J  (auto-calculated from score)
+        #   "commments" (3 M's — not a typo)    →  Column K  (Comment)
+        #   [Response Category]                 →  Column M  (auto-calculated from comment)
+        #   Note: Columns J and M are auto-calculated — no source column needed.
+        #   IMPORTANT: The "commments" column in the raw file has 3 M's ("commments").
+        #              This is a known quirk of the source file — do not correct it.
+        #
+        # TO ADD A COLUMN:
+        #   Step 1 — Add a read line below:
+        #     new_col = find_column_containing(csats_df, ["exact header keyword"])
+        #   Step 2 — Add a write line in the WRITING BLOCK further below:
+        #     ws[f"X{current_row}"].value = case[new_col]
+        #     (Replace "X" with the target QCL column letter, e.g. "N" for column N)
+        #
+        # TO REMOVE A COLUMN:
+        #   Step 1 — Delete (or comment out) its find_column_containing(...) line below.
+        #   Step 2 — Delete (or comment out) its ws[f"X{current_row}"].value = ... line
+        #            in the WRITING BLOCK further below.
+        #
+        # TO RENAME A SOURCE COLUMN (QA Review file header changed):
+        #   Update the keyword in find_column_containing(csats_df, ["old name"])
+        #   to the new name. Tip: list both as fallbacks: ["new name", "old name"]
+        #
+        # TO MOVE A QCL COLUMN (column letter changed in QCL template):
+        #   In the WRITING BLOCK, change ws[f"OLD_LETTER{current_row}"]
+        #   to ws[f"NEW_LETTER{current_row}"]
+        # ─────────────────────────────────────────────────────────────────────────
+        raw_team_col = find_column_containing(csats_df, ["team"])                          # → QCL Column C
+        country_code_col = find_column_containing(csats_df, ["subject person country code"])  # → QCL Column D
+        agent_col = find_column_containing(csats_df, ["agent"])                            # → QCL Column E
+        csat_id_col = find_column_containing(csats_df, ["csat id"])                        # → QCL Column F
+        case_number_col = find_column_containing(csats_df, ["case number"])                # → QCL Column G
+        hrservice_col = find_column_containing(csats_df, ["hr service"])                   # → QCL Column H
+        csat_score_col = find_column_containing(csats_df, ["csatscore", "csat score"])     # → QCL Column I
+        comments_col = find_column_containing(csats_df, ["commments"])  # → QCL Column K  [NOTE: "commments" has 3 M's in the raw file — this is not a typo]
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -1525,20 +1773,24 @@ def process_qa_reviews_csats(qa_review_file, member_file, wb, control_no_start, 
                 csat_id = case[csat_id_col]
                 location, recognized, raw_location = format_location(case[country_code_col])
 
-                ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
-                ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
-                ws[f"F{current_row}"].value = csat_id  # CSAT ID
-                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
-                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
-                ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
-                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
-                ws[f"K{current_row}"].value = case[comments_col]  # Comment
-                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
-
-                # To make sure that the new column is written into the CSATs sheet in the QCL column, follow this format:
-                # ws[f"<INSERTCOLUMNLETTERHERE>{current_row}"].value = <NEWCOLUMNNAMEHERE>_col
+                # ── WRITING BLOCK: CSATs ─────────────────────────────────────────────────
+                # Each line writes one value into the QCL. The letter (B, C, D...) is the
+                # column in the QCL Excel sheet. To add a new column here, add a new line
+                # following the same pattern and use the correct QCL column letter.
+                ws[f"B{current_row}"].value = control_no                                                                             # Col B: Control Check No. (auto-numbered)
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])  # Col C: Assignment Group
+                ws[f"D{current_row}"].value = location                                                                               # Col D: Location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']                       # Col E: Processor Name
+                ws[f"F{current_row}"].value = csat_id                                                                                # Col F: CSAT ID
+                ws[f"G{current_row}"].value = case_number                                                                            # Col G: Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[hrservice_col]                                                                    # Col H: HR Service
+                ws[f"I{current_row}"].value = case[csat_score_col]                                                                   # Col I: CSAT Score
+                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])                                              # Col J: CSAT Type (auto-calculated from score)
+                ws[f"K{current_row}"].value = case[comments_col]                                                                     # Col K: Comment
+                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])                                        # Col M: Response Category (auto-calculated from comment)
+                # ── To add a column: ws[f"X{current_row}"].value = case[new_col]
+                #    (replace X with the QCL column letter, e.g. "N" for column N)
+                # ─────────────────────────────────────────────────────────────────────────
 
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
@@ -1601,15 +1853,51 @@ def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_sta
                         return col
             raise ValueError(f"Missing required column containing: {search_terms}")
 
-        # Column mapping for CSAT Chat:
-        raw_team_col = find_column_containing(csat_chat_df, ["team"])  # Column H -> QCL Column C
-        country_code_col = find_column_containing(csat_chat_df, ["subject person country code"])  # Column G -> QCL Column D
-        agent_col = find_column_containing(csat_chat_df, ["agent"])  # Column I -> QCL Column E
-        csat_id_col = find_column_containing(csat_chat_df, ["csat id"])  # Column B -> QCL Column F
-        case_number_col = find_column_containing(csat_chat_df, ["case number"])  # Column D -> QCL Column G
-        hrservice_col = find_column_containing(csat_chat_df, ["hr service"])  # Column P -> QCL Column H
-        csat_score_col = find_column_containing(csat_chat_df, ["csatscore", "csat score"])  # Column E -> QCL Column I
-        comments_col = find_column_containing(csat_chat_df, ["commments"])  # Column F -> QCL Column K # Column F -> QCL Column K [RENZO NOTE: FOR SOME REASON, COLUMN F HAS 3 Ms IN COMMENTS IN THE RAW FILE. THIS IS NOT A TYPO ??????]
+        # ── COLUMN MAP: CSAT Chat ─────────────────────────────────────────────────
+        # This sheet is exclusive to Circle 6 (Contact Center).
+        # SOURCE KEYWORD (in QA Review file)        QCL OUTPUT COLUMN
+        #   "team"                              →  Column C  (Assignment Group)
+        #   "subject person country code"       →  Column D  (Location)
+        #   "agent"                             →  Column E  (Processor Name)
+        #   "csat id"                           →  Column F  (CSAT ID)
+        #   "case number"                       →  Column G  (Reference Number)
+        #   "hr service"                        →  Column H  (HR Service)
+        #   "csatscore" / "csat score"          →  Column I  (CSAT Score)
+        #   [CSAT Type]                         →  Column J  (auto-calculated from score)
+        #   "commments" (3 M's — not a typo)    →  Column K  (Comment)
+        #   [Response Category]                 →  Column M  (auto-calculated from comment)
+        #   Note: Columns J and M are auto-calculated — no source column needed.
+        #   IMPORTANT: The "commments" column in the raw file has 3 M's ("commments").
+        #              This is a known quirk of the source file — do not correct it.
+        #
+        # TO ADD A COLUMN:
+        #   Step 1 — Add a read line below:
+        #     new_col = find_column_containing(csat_chat_df, ["exact header keyword"])
+        #   Step 2 — Add a write line in the WRITING BLOCK further below:
+        #     ws[f"X{current_row}"].value = case[new_col]
+        #     (Replace "X" with the target QCL column letter, e.g. "N" for column N)
+        #
+        # TO REMOVE A COLUMN:
+        #   Step 1 — Delete (or comment out) its find_column_containing(...) line below.
+        #   Step 2 — Delete (or comment out) its ws[f"X{current_row}"].value = ... line
+        #            in the WRITING BLOCK further below.
+        #
+        # TO RENAME A SOURCE COLUMN (QA Review file header changed):
+        #   Update the keyword in find_column_containing(csat_chat_df, ["old name"])
+        #   to the new name. Tip: list both as fallbacks: ["new name", "old name"]
+        #
+        # TO MOVE A QCL COLUMN (column letter changed in QCL template):
+        #   In the WRITING BLOCK, change ws[f"OLD_LETTER{current_row}"]
+        #   to ws[f"NEW_LETTER{current_row}"]
+        # ─────────────────────────────────────────────────────────────────────────
+        raw_team_col = find_column_containing(csat_chat_df, ["team"])                          # → QCL Column C
+        country_code_col = find_column_containing(csat_chat_df, ["subject person country code"])  # → QCL Column D
+        agent_col = find_column_containing(csat_chat_df, ["agent"])                            # → QCL Column E
+        csat_id_col = find_column_containing(csat_chat_df, ["csat id"])                        # → QCL Column F
+        case_number_col = find_column_containing(csat_chat_df, ["case number"])                # → QCL Column G
+        hrservice_col = find_column_containing(csat_chat_df, ["hr service"])                   # → QCL Column H
+        csat_score_col = find_column_containing(csat_chat_df, ["csatscore", "csat score"])     # → QCL Column I
+        comments_col = find_column_containing(csat_chat_df, ["commments"])  # → QCL Column K  [NOTE: "commments" has 3 M's in the raw file — this is not a typo]
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -1689,17 +1977,24 @@ def process_qa_reviews_csat_chat(qa_review_file, member_file, wb, control_no_sta
                 csat_id = case[csat_id_col]
                 location, recognized, raw_location = format_location(case[country_code_col])
 
-                ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
-                ws[f"D{current_row}"].value = location
-                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
-                ws[f"F{current_row}"].value = csat_id  # CSAT ID
-                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
-                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
-                ws[f"I{current_row}"].value = case[csat_score_col]  # CSAT Score
-                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])  # CSAT Type (auto-calculated)
-                ws[f"K{current_row}"].value = case[comments_col]  # Comment
-                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])  # Response Category (auto-calculated)
+                # ── WRITING BLOCK: CSAT Chat ─────────────────────────────────────────────
+                # Each line writes one value into the QCL. The letter (B, C, D...) is the
+                # column in the QCL Excel sheet. To add a new column here, add a new line
+                # following the same pattern and use the correct QCL column letter.
+                ws[f"B{current_row}"].value = control_no                                                                             # Col B: Control Check No. (auto-numbered)
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])  # Col C: Assignment Group
+                ws[f"D{current_row}"].value = location                                                                               # Col D: Location
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']                       # Col E: Processor Name
+                ws[f"F{current_row}"].value = csat_id                                                                                # Col F: CSAT ID
+                ws[f"G{current_row}"].value = case_number                                                                            # Col G: Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[hrservice_col]                                                                    # Col H: HR Service
+                ws[f"I{current_row}"].value = case[csat_score_col]                                                                   # Col I: CSAT Score
+                ws[f"J{current_row}"].value = calculate_csat_type(case[csat_score_col])                                              # Col J: CSAT Type (auto-calculated from score)
+                ws[f"K{current_row}"].value = case[comments_col]                                                                     # Col K: Comment
+                ws[f"M{current_row}"].value = calculate_response_category(case[comments_col])                                        # Col M: Response Category (auto-calculated from comment)
+                # ── To add a column: ws[f"X{current_row}"].value = case[new_col]
+                #    (replace X with the QCL column letter, e.g. "N" for column N)
+                # ─────────────────────────────────────────────────────────────────────────
 
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
@@ -1772,15 +2067,48 @@ def process_qa_reviews_live_chat_fcr(qa_review_file, member_file, wb, control_no
                         return col
             raise ValueError(f"Could not find column matching any of {search_terms} in Live Chat FCR sheet")
 
-        # Column mappings from raw file
-        raw_team_col = find_column_containing(live_chat_fcr_df, ["team"])
-        country_code_col = find_column_containing(live_chat_fcr_df, ["subject person country code"])
-        agent_col = find_column_containing(live_chat_fcr_df, ["agent"])
-        csat_id_col = find_column_containing(live_chat_fcr_df, ["csat id"])
-        case_number_col = find_column_containing(live_chat_fcr_df, ["case number"])
-        hrservice_col = find_column_containing(live_chat_fcr_df, ["hr service"])
-        comments_col = find_column_containing(live_chat_fcr_df, ["commments"])  # 3 Ms in raw file
-        fcr_col = find_column_containing(live_chat_fcr_df, ["fcr"])
+        # ── COLUMN MAP: Live Chat FCR ─────────────────────────────────────────────
+        # This sheet is exclusive to Circle 6 (Contact Center).
+        # SOURCE KEYWORD (in QA Review file)        QCL OUTPUT COLUMN
+        #   "team"                              →  Column C  (Assignment Group)
+        #   "subject person country code"       →  Column D  (Location / Country)
+        #   "agent"                             →  Column E  (Processor Name)
+        #   "csat id"                           →  Column F  (CSAT ID)
+        #   "case number"                       →  Column G  (Reference Number)
+        #   "hr service"                        →  Column H  (HR Service)
+        #   "commments" (3 M's — not a typo)    →  Column I  (Comment)
+        #   "fcr"                               →  Column J  (FCR)
+        #   IMPORTANT: The "commments" column in the raw file has 3 M's ("commments").
+        #              This is a known quirk of the source file — do not correct it.
+        #
+        # TO ADD A COLUMN:
+        #   Step 1 — Add a read line below:
+        #     new_col = find_column_containing(live_chat_fcr_df, ["exact header keyword"])
+        #   Step 2 — Add a write line in the WRITING BLOCK further below:
+        #     ws[f"X{current_row}"].value = case[new_col]
+        #     (Replace "X" with the target QCL column letter, e.g. "K" for column K)
+        #
+        # TO REMOVE A COLUMN:
+        #   Step 1 — Delete (or comment out) its find_column_containing(...) line below.
+        #   Step 2 — Delete (or comment out) its ws[f"X{current_row}"].value = ... line
+        #            in the WRITING BLOCK further below.
+        #
+        # TO RENAME A SOURCE COLUMN (QA Review file header changed):
+        #   Update the keyword in find_column_containing(live_chat_fcr_df, ["old name"])
+        #   to the new name. Tip: list both as fallbacks: ["new name", "old name"]
+        #
+        # TO MOVE A QCL COLUMN (column letter changed in QCL template):
+        #   In the WRITING BLOCK, change ws[f"OLD_LETTER{current_row}"]
+        #   to ws[f"NEW_LETTER{current_row}"]
+        # ─────────────────────────────────────────────────────────────────────────
+        raw_team_col = find_column_containing(live_chat_fcr_df, ["team"])                          # → QCL Column C
+        country_code_col = find_column_containing(live_chat_fcr_df, ["subject person country code"])  # → QCL Column D
+        agent_col = find_column_containing(live_chat_fcr_df, ["agent"])                            # → QCL Column E
+        csat_id_col = find_column_containing(live_chat_fcr_df, ["csat id"])                        # → QCL Column F
+        case_number_col = find_column_containing(live_chat_fcr_df, ["case number"])                # → QCL Column G
+        hrservice_col = find_column_containing(live_chat_fcr_df, ["hr service"])                   # → QCL Column H
+        comments_col = find_column_containing(live_chat_fcr_df, ["commments"])  # → QCL Column I  [NOTE: "commments" has 3 M's in the raw file — this is not a typo]
+        fcr_col = find_column_containing(live_chat_fcr_df, ["fcr"])                                # → QCL Column J
 
         # Read member list file
         member_header_row = detect_header_row(
@@ -1859,15 +2187,22 @@ def process_qa_reviews_live_chat_fcr(qa_review_file, member_file, wb, control_no
                 csat_id = case[csat_id_col]
                 location, recognized, raw_location = format_location(case[country_code_col])
 
-                ws[f"B{current_row}"].value = control_no
-                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])
-                ws[f"D{current_row}"].value = location  # Country
-                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
-                ws[f"F{current_row}"].value = csat_id  # CSAT ID
-                ws[f"G{current_row}"].value = case_number  # Reference Number (HR Case No.)
-                ws[f"H{current_row}"].value = case[hrservice_col]  # HR Service
-                ws[f"I{current_row}"].value = case[comments_col]  # Comment
-                ws[f"J{current_row}"].value = case[fcr_col]  # FCR
+                # ── WRITING BLOCK: Live Chat FCR ─────────────────────────────────────────
+                # Each line writes one value into the QCL. The letter (B, C, D...) is the
+                # column in the QCL Excel sheet. To add a new column here, add a new line
+                # following the same pattern and use the correct QCL column letter.
+                ws[f"B{current_row}"].value = control_no                                                                             # Col B: Control Check No. (auto-numbered)
+                ws[f"C{current_row}"].value = str(case[raw_team_col]).strip() if is_katowice else format_assignment_group(case[raw_team_col])  # Col C: Assignment Group
+                ws[f"D{current_row}"].value = location                                                                               # Col D: Location / Country
+                ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']                       # Col E: Processor Name
+                ws[f"F{current_row}"].value = csat_id                                                                                # Col F: CSAT ID
+                ws[f"G{current_row}"].value = case_number                                                                            # Col G: Reference Number (HR Case No.)
+                ws[f"H{current_row}"].value = case[hrservice_col]                                                                    # Col H: HR Service
+                ws[f"I{current_row}"].value = case[comments_col]                                                                     # Col I: Comment
+                ws[f"J{current_row}"].value = case[fcr_col]                                                                          # Col J: FCR
+                # ── To add a column: ws[f"X{current_row}"].value = case[new_col]
+                #    (replace X with the QCL column letter, e.g. "K" for column K)
+                # ─────────────────────────────────────────────────────────────────────────
 
                 # Log statistics to terminal, unprocessed notices to GUI console
                 if recognized is True:
@@ -1944,14 +2279,47 @@ def process_qa_reviews_wd_breach(qa_review_file, wb, control_no_start, selected_
                         return col
             raise ValueError(f"Could not find column matching any of {search_terms} in WD Breach sheet")
 
-        # Column mappings from raw file
-        snow_assignment_col = find_column_containing(wd_breach_df, ["snow assignment group"])
-        functional_area_col = find_column_containing(wd_breach_df, ["overall functional area"])
-        country_col = find_column_containing(wd_breach_df, ["country"])
-        bp_name_col = find_column_containing(wd_breach_df, ["business process name"])
-        workday_id_col = find_column_containing(wd_breach_df, ["workday id"])
-        bp_completed_col = find_column_containing(wd_breach_df, ["bp completed date"])
-        target_sla_col = find_column_containing(wd_breach_df, ["target sla days"])
+        # ── COLUMN MAP: WD Breached Cases ────────────────────────────────────────
+        # This sheet is exclusive to Katowice.
+        # Unlike other sheets, there is no member-matching — Column F (Processor Name)
+        # is intentionally left blank for manual input after export.
+        # SOURCE KEYWORD (in QA Review file)        QCL OUTPUT COLUMN
+        #   "snow assignment group"             →  Column C  (Team)
+        #   "overall functional area"           →  Column D  (Functional Area)
+        #   "country"                           →  Column E  (Country)
+        #   [Column F intentionally left blank] →  Column F  (Processor Name — fill manually)
+        #   "business process name"             →  Column G  (Business Process Name)
+        #   "workday id"                        →  Column H  (Reference Number / Workday ID)
+        #   "bp completed date"                 →  Column I  (BP Completed Date)
+        #   "target sla days"                   →  Column J  (Target SLA Days)
+        #
+        # TO ADD A COLUMN:
+        #   Step 1 — Add a read line below:
+        #     new_col = find_column_containing(wd_breach_df, ["exact header keyword"])
+        #   Step 2 — Add a write line in the WRITING BLOCK further below:
+        #     ws[f"X{current_row}"].value = case[new_col]
+        #     (Replace "X" with the target QCL column letter, e.g. "K" for column K)
+        #
+        # TO REMOVE A COLUMN:
+        #   Step 1 — Delete (or comment out) its find_column_containing(...) line below.
+        #   Step 2 — Delete (or comment out) its ws[f"X{current_row}"].value = ... line
+        #            in the WRITING BLOCK further below.
+        #
+        # TO RENAME A SOURCE COLUMN (QA Review file header changed):
+        #   Update the keyword in find_column_containing(wd_breach_df, ["old name"])
+        #   to the new name. Tip: list both as fallbacks: ["new name", "old name"]
+        #
+        # TO MOVE A QCL COLUMN (column letter changed in QCL template):
+        #   In the WRITING BLOCK, change ws[f"OLD_LETTER{current_row}"]
+        #   to ws[f"NEW_LETTER{current_row}"]
+        # ─────────────────────────────────────────────────────────────────────────
+        snow_assignment_col = find_column_containing(wd_breach_df, ["snow assignment group"])  # → QCL Column C
+        functional_area_col = find_column_containing(wd_breach_df, ["overall functional area"])  # → QCL Column D
+        country_col = find_column_containing(wd_breach_df, ["country"])                        # → QCL Column E
+        bp_name_col = find_column_containing(wd_breach_df, ["business process name"])          # → QCL Column G
+        workday_id_col = find_column_containing(wd_breach_df, ["workday id"])                  # → QCL Column H
+        bp_completed_col = find_column_containing(wd_breach_df, ["bp completed date"])         # → QCL Column I
+        target_sla_col = find_column_containing(wd_breach_df, ["target sla days"])             # → QCL Column J
 
         # Get raw file name for logging
         raw_file_name = os.path.basename(qa_review_file)
@@ -1983,15 +2351,22 @@ def process_qa_reviews_wd_breach(qa_review_file, wb, control_no_start, selected_
             workday_id = case[workday_id_col]
             country = case[country_col] if not pd.isna(case[country_col]) else ""
 
-            ws[f"B{current_row}"].value = control_no
-            ws[f"C{current_row}"].value = str(case[snow_assignment_col]).strip()  # Team (no formatting — Katowice only)
-            ws[f"D{current_row}"].value = str(case[functional_area_col]).strip() if not pd.isna(case[functional_area_col]) else ""
-            ws[f"E{current_row}"].value = str(country).strip()  # Country
-            # Column F (Processor Name) left blank for manual input
-            ws[f"G{current_row}"].value = str(case[bp_name_col]).strip() if not pd.isna(case[bp_name_col]) else ""
-            ws[f"H{current_row}"].value = workday_id  # Reference Number (Workday ID)
-            ws[f"I{current_row}"].value = case[bp_completed_col]  # BP Completed Date
-            ws[f"J{current_row}"].value = case[target_sla_col]  # Target SLA Days
+            # ── WRITING BLOCK: WD Breached Cases ─────────────────────────────────────
+            # Each line writes one value into the QCL. The letter (B, C, D...) is the
+            # column in the QCL Excel sheet. To add a new column here, add a new line
+            # following the same pattern and use the correct QCL column letter.
+            ws[f"B{current_row}"].value = control_no                                                                                  # Col B: Control Check No. (auto-numbered)
+            ws[f"C{current_row}"].value = str(case[snow_assignment_col]).strip()                                                      # Col C: Team (no formatting — Katowice only)
+            ws[f"D{current_row}"].value = str(case[functional_area_col]).strip() if not pd.isna(case[functional_area_col]) else ""    # Col D: Functional Area
+            ws[f"E{current_row}"].value = str(country).strip()                                                                        # Col E: Country
+            # Col F: Processor Name — intentionally left blank for manual input after export
+            ws[f"G{current_row}"].value = str(case[bp_name_col]).strip() if not pd.isna(case[bp_name_col]) else ""                   # Col G: Business Process Name
+            ws[f"H{current_row}"].value = workday_id                                                                                  # Col H: Reference Number (Workday ID)
+            ws[f"I{current_row}"].value = case[bp_completed_col]                                                                      # Col I: BP Completed Date
+            ws[f"J{current_row}"].value = case[target_sla_col]                                                                        # Col J: Target SLA Days
+            # ── To add a column: ws[f"X{current_row}"].value = case[new_col]
+            #    (replace X with the QCL column letter, e.g. "K" for column K)
+            # ─────────────────────────────────────────────────────────────────────────
 
             print(f"WD Breach {control_no}: Workday ID {workday_id} from {country} was taken from row {raw_row_num} in {raw_file_name}/WD Breach")
 
@@ -2081,12 +2456,47 @@ def process_files():
 
             # Read raw data file
             raw_df = pd.read_excel(raw_file)
-            location_col = find_column(raw_df, ["Location"])
-            assigned_col = find_column(raw_df, ["Assigned to", "Assigned To"])
-            case_id_col = find_column(raw_df, ["Number"])
-            service_col = find_column(raw_df, ["HR Service"])
-            assignment_group_col = find_column(raw_df, ["Assignment group"])
-            opened_for_col = find_column(raw_df, ["Opened for", "Opened For"])
+
+            # ── COLUMN MAP: QA Checks ─────────────────────────────────────────────────
+            # NOTE: QA Checks uses EXACT column name matching (find_column), unlike the
+            # QA Review sheets which use partial/keyword matching (find_column_containing).
+            # The column name in the source file must match exactly (case-insensitive).
+            #
+            # SOURCE COLUMN NAME (in QA Checks file)    QCL OUTPUT COLUMN
+            #   "Location"                          →  Column D  (Location)
+            #   "Assigned to" / "Assigned To"       →  Column E  (Processor Name)
+            #   "Number"                            →  Column F  (Reference Number)
+            #   "HR Service"                        →  Column G  (HR Service)
+            #   "Assignment group"                  →  Column C  (Assignment Group, used for circle filtering)
+            #   "Opened for" / "Opened For"         →  (fallback location lookup — not written directly to QCL)
+            #   Note: Column B is the auto-numbered Control Check No.
+            #
+            # TO ADD A COLUMN:
+            #   Step 1 — Add a read line below:
+            #     new_col = find_column(raw_df, ["Exact Column Header Name"])
+            #   Step 2 — Add a write line in the WRITING BLOCK further below:
+            #     ws[f"X{current_row}"].value = case[new_col]
+            #     (Replace "X" with the target QCL column letter, e.g. "H" for column H)
+            #
+            # TO REMOVE A COLUMN:
+            #   Step 1 — Delete (or comment out) its find_column(...) line below.
+            #   Step 2 — Delete (or comment out) its ws[f"X{current_row}"].value = ... line
+            #            in the WRITING BLOCK further below.
+            #
+            # TO RENAME A SOURCE COLUMN (QA Checks file header changed):
+            #   Update the name inside find_column(raw_df, ["old name"])
+            #   to the new name. Tip: list both as fallbacks: ["new name", "old name"]
+            #
+            # TO MOVE A QCL COLUMN (column letter changed in QCL template):
+            #   In the WRITING BLOCK, change ws[f"OLD_LETTER{current_row}"]
+            #   to ws[f"NEW_LETTER{current_row}"]
+            # ─────────────────────────────────────────────────────────────────────────
+            location_col = find_column(raw_df, ["Location"])                         # → used for QCL Column D (via format_location)
+            assigned_col = find_column(raw_df, ["Assigned to", "Assigned To"])       # → QCL Column E (Processor Name)
+            case_id_col = find_column(raw_df, ["Number"])                            # → QCL Column F (Reference Number)
+            service_col = find_column(raw_df, ["HR Service"])                        # → QCL Column G (HR Service)
+            assignment_group_col = find_column(raw_df, ["Assignment group"])         # → QCL Column C (Assignment Group, also used for circle filtering)
+            opened_for_col = find_column(raw_df, ["Opened for", "Opened For"])       # → fallback location lookup only (not written directly to QCL)
 
             # Read member list file
             member_header_row = detect_header_row(
@@ -2176,12 +2586,19 @@ def process_files():
                     case_number = case[case_id_col]
                     location, recognized, raw_location = get_case_location(case[location_col], case[opened_for_col])
 
-                    ws[f"B{current_row}"].value = control_no
-                    ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])
-                    ws[f"D{current_row}"].value = location
-                    ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']
-                    ws[f"F{current_row}"].value = case_number
-                    ws[f"G{current_row}"].value = case[service_col]
+                    # ── WRITING BLOCK: QA Checks ─────────────────────────────────────────────
+                    # Each line writes one value into the QCL. The letter (B, C, D...) is the
+                    # column in the QCL Excel sheet. To add a new column here, add a new line
+                    # following the same pattern and use the correct QCL column letter.
+                    ws[f"B{current_row}"].value = control_no                                                                             # Col B: Control Check No. (auto-numbered)
+                    ws[f"C{current_row}"].value = str(case[assignment_group_col]).strip() if is_katowice else format_assignment_group(case[assignment_group_col])  # Col C: Assignment Group
+                    ws[f"D{current_row}"].value = location                                                                               # Col D: Location
+                    ws[f"E{current_row}"].value = member_data['name'] if is_katowice else member_data['team_name']                       # Col E: Processor Name
+                    ws[f"F{current_row}"].value = case_number                                                                            # Col F: Reference Number
+                    ws[f"G{current_row}"].value = case[service_col]                                                                      # Col G: HR Service
+                    # ── To add a column: ws[f"X{current_row}"].value = case[new_col]
+                    #    (replace X with the QCL column letter, e.g. "H" for column H)
+                    # ─────────────────────────────────────────────────────────────────────────
 
                     # Log statistics to terminal, unprocessed notices to GUI console
                     if recognized is True:
@@ -2444,10 +2861,10 @@ circle_dropdown = tk.OptionMenu(
     circle_var,
     "All Circles",
     "Circle 1 (HCM, OM)",
-    "Circle 2 (Expense, Reporting, Travel)",
+    "Circle 2 (Expense, Reporting)",
     "Circle 3 (Learning)",
     "Circle 4 (International Mobility)",
-    "Circle 5 (Performance & Rewards)",
+    "Circle 5 (Performance & Rewards, Travel)",
     "Circle 6 (Contact Center)",
     "Circle 6 (Recruitment Admin)",
     "All Katowice",
