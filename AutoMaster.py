@@ -43,7 +43,7 @@ COUNTRY_LOCATION_MAP = {
     "Australia": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU"
+            "SYD", "TUG", "WYN", "AU", "OVR", "Guest AU - Guest.AU", "MEL"
         ]
     },
     "Austria": {
@@ -101,7 +101,7 @@ COUNTRY_LOCATION_MAP = {
         ]
     },
     "Bulgaria": {
-        "formatted_prefixes": [],
+        "formatted_prefixes": ["PH2_BG"],
         "arbitrary_codes": [
             "BG"
         ]
@@ -187,7 +187,7 @@ COUNTRY_LOCATION_MAP = {
     "France": {
         "formatted_prefixes": [],
         "arbitrary_codes": [
-            "France", "RIC", "FR"
+            "France", "RIC", "FR", "BER"
         ]
     },
     "French Polynesia": {
@@ -438,11 +438,11 @@ COUNTRY_LOCATION_MAP = {
             "CDR", 
             "DEA", "DP", 
             "HBP",
-            "KBK","KCC", "KCM", "KFL", "KFR", "KGD", "KMH", "KNF", "KQB", "KQB", "KSY", "KXS", "KZK", "KZR", "KNZ", "KBE", "KLQ", "KQT",
+            "KBK","KCC", "KCM", "KFL", "KFR", "KGD", "KMH", "KNF", "KQB", "KQB", "KSY", "KXS", "KZK", "KZR", "KNZ", "KBE", "KLQ", "KQT", "KZW", "KNK", "KRQ",
             "LZ",
             "NL",
             "RBG", 
-            "WP","WBM",
+            "WP","WBM","WCD",
             "Guest NL - Guest.NL",
         ]
     },
@@ -522,6 +522,7 @@ COUNTRY_LOCATION_MAP = {
         "formatted_prefixes": ["PH1_PL"],
         "arbitrary_codes": [
             "PL", "PH2_SK_Brati", "P-PULAWSKA", "P-CHORZOWSKA", "P-SOKOLSKA", "P-CHORZ.50", "DR01R1402", "DR09R0102"
+            "DR02R0602", "DR06R0701R"
         ]
     },
     "Poland Bank": {
@@ -664,7 +665,7 @@ COUNTRY_LOCATION_MAP = {
     "Turkey": {
         "formatted_prefixes": ["PH2_TR"],
         "arbitrary_codes": [
-            "TR", "4127"
+            "TR", "4127", "001001", "001015"
         ]
     },
     "Turkmenistan": {
@@ -683,6 +684,11 @@ COUNTRY_LOCATION_MAP = {
         "formatted_prefixes": ["PH2_UA"],
         "arbitrary_codes": [
             "UA"
+        ]
+    },
+    "United Arab Emirates": {
+        "formatted_prefixes": ["PH2_AE"],
+        "arbitrary_codes": [
         ]
     },
     "United Kingdom": {
