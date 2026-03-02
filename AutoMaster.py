@@ -596,7 +596,7 @@ COUNTRY_LOCATION_MAP = {
             "LZ",
             "NL",
             "RBG", 
-            "WP","WBM","WCD",
+            "WP","WBM","WCD", "TRC",
             "Guest NL - Guest.NL",
         ]
     },
@@ -657,7 +657,7 @@ COUNTRY_LOCATION_MAP = {
     "Philippines": {
         "formatted_prefixes": ["PH1_PH", "Guest PH", "PH2_PH"],
         "arbitrary_codes": [
-            "PH", "Guest PH - Guest.PH"
+            "PH", "Guest PH - Guest.PH", "Philippines"
         ]
     },
     "Philippines Bank": {
