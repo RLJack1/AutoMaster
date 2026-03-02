@@ -1077,6 +1077,16 @@ def infer_location_from_opened_for(opened_for_value):
         return ""
 
     opened_for_str = str(opened_for_value).strip()
+
+    # Only process if the value is a guest account — regular employee names (e.g. "Maron De Vista",
+    # "Guest De La Cruz") can contain tokens that accidentally match country codes.
+    # Guest accounts follow the specific format "Guest XX - Guest.XX" (e.g. "Guest NL - Guest.NL"),
+    # so we check for "Guest." (with a dot) as the reliable distinguishing marker.
+    # A plain "guest" check is insufficient because a name like "Guest De La Cruz" would still
+    # produce tokens "DE" and "LA", matching Germany and Laos respectively.
+    if "guest." not in opened_for_str.lower():
+        return ""
+
     opened_for_upper = opened_for_str.upper()
 
     # Split the opened_for value into distinct tokens for exact word matching
